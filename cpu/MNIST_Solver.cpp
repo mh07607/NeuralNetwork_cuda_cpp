@@ -123,15 +123,20 @@ void input(std::string ipath, std::string lpath, std::string ipath2, std::string
 }
 
 
-int main()
+int main(int argc, char * argv[])
 {
+    if(argc < 2){
+        std::cout << "Please specify path to the data as command line argument.\n" << std::endl;
+        return -1;
+    }
     std::cout << "Using Eigen ver: " << EIGEN_WORLD_VERSION << "." << 
                   EIGEN_MAJOR_VERSION << "." << EIGEN_MINOR_VERSION << std::endl;
 
-    input("/content/data/train-images-idx3-ubyte",
-        "/content/data/train-labels-idx1-ubyte",
-        "/content/data/t10k-images-idx3-ubyte",
-        "/content/data/t10k-labels-idx1-ubyte");
+    std::string data_path = argv[1];
+    input(data_path + "/train-images-idx3-ubyte",
+        data_path + "/train-labels-idx1-ubyte",
+        data_path + "/t10k-images-idx3-ubyte",
+        data_path + "/t10k-labels-idx1-ubyte");
 
     Network nn;
     nn.add(new DenseLayer(28*28, 100));
