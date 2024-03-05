@@ -5,6 +5,7 @@
 #include <iostream>
 #include <vector>
 #include <Eigen/Dense>
+#include <cuda_runtime.h>
 #include <numeric> //std::iota
 
 void printMatrixSize(const std::string msg, const Eigen::MatrixXf& m)
