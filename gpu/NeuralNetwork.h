@@ -105,7 +105,6 @@ public:
 	ActivationLayer(std::function<float(float)> activation,
 		std::function<float(float)> activationPrime)
 	{
-		type = 1;
 		this->activation = activation;
 		this->activationPrime = activationPrime;
 	}
@@ -135,7 +134,6 @@ class FlattenLayer :public Layer
 public:
 	Eigen::MatrixXf forwardPropagation(Eigen::MatrixXf& input)
 	{
-		type = 2;
 		this->input = input;
 		this->output = input;
 		this->output.resize(1, input.rows() * input.cols()); //flatten
