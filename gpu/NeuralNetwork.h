@@ -24,13 +24,13 @@ __global__ void MatrixMulKernel(float* d_M, float* d_N, float* d_P, float * d_B,
 	}
 }
 
-void MatrixMul(float * d_M, float * d_N, float * d_P, float * d_b; int M, int N){
+void MatrixMul(float * d_M, float * d_N, float * d_P, float * d_b, int M, int N){
 	for(int j = 0; j < N; j++){
 		for(int i = 0; i < M; i++){
 			d_P[i*M + j] = 0;
-			for(int k = 0; k < M; k++){
-				// d_P[i*m += 
-			}
+			// for(int k = 0; k < M; k++){
+			// 	// d_P[i*m += 
+			// }
 		}
 	}
 }
