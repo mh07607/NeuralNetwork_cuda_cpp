@@ -8,6 +8,23 @@
 #include <cuda_runtime.h>
 #include <numeric> //std::iota
 
+__global__ void gpuNetwork_forwardPropagation(Layer ** device_layers, int num_layers, Eigen::MatrixXf& output){
+	for(int i = 0; i < num_layers; i++){
+		device_layers[i]->input = output;
+		output = output * device_layers[i]->weights + device_layers[i]->bias;
+		__syncthreads();
+	}
+}
+
+__global__ void activationLayer_forwardPropagation(Layer * device_layer, Eigen::MatrixXf& input, Eigen::MatrixXf& output){
+	output = input;
+}
+
+__global__ void denseLayer_forwardPropagation(Layer * device_layer, Eigen::MatrixXf& input, Eigen::MatrixXf& output){
+	device_layer->input = input;
+	output = input * device_layer->weights + device_layer->bias;
+}
+
 void printMatrixSize(const std::string msg, const Eigen::MatrixXf& m)
 {
 	std::cout << msg.c_str() << "[" << m.rows() << "," << m.cols() << "]" << std::endl;
@@ -60,6 +77,7 @@ public:
 private:
 	Eigen::MatrixXf weights;
 	Eigen::MatrixXf bias;
+	int type = 0;
 };
 
 class ActivationLayer : public Layer
@@ -90,6 +108,7 @@ public:
 private:
 	std::function<float(float)> activation;
 	std::function<float(float)> activationPrime;
+	int type = 1;
 };
 
 class FlattenLayer :public Layer
@@ -172,14 +191,22 @@ public:
 			for (int j = 0; j < samples; ++j)
 			{
 				int index = order[j];
-			    Eigen::MatrixXf output = x_train.row(index); 
+			    // Eigen::MatrixXf output = x_train.row(index);
+				Eigen::MatrixXf * d_output;
+				Eigen::MatrixXf * h_output;
+				int dataSize = x_train.row(index).size() * sizeof(float);
+				print("x_train row size: %d\n", dataSize);
+				cudaMalloc((void **)&d_output, dataSize);
+				cudaMemcpy(d_output, x_train.row(index).data(), dataSize, cudaMemcpyHostToDevice);
 
-				for (Layer* layer : layers)				 	
-					output = layer->forwardPropagation(output);
-					  
+				int num_layers = layers.size();
+				gpuNetwork_forwardPropagation<<<1, 1>>>(device_layers.data(), num_layers, d_output);
+				// for (Layer* layer : layers)				 	
+				//  	output = layer->forwardPropagation(output);
+				cudaMemcpy(h_output, d_output, sizeof(Eigen::MatrixXf), cudaMemcpyDeviceToHost);	  
 				// compute loss(for display purpose only)
 				Eigen::MatrixXf y = y_train.row(index);
-				   
+				
 				err += loss(y, output);
 				
 				//backward propagation 
