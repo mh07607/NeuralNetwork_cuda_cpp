@@ -130,10 +130,10 @@ __global__ void gpuNetwork_forwardPropagation(Layer ** device_layers, int num_la
 	for(int i = 0; i < num_layers; i++){
 		if(!device_layers[i]->type){
 			DenseLayer *dense_layer = static_cast<DenseLayer*>(device_layers[i]);
-			denseLayer_forwardPropagation<<<1, 1>>>(device_layers[i], output, output);
+			denseLayer_forwardPropagation<<<1, 1>>>(dense_layer, output, output);
 		} else {
 			ActivationLayer *activation_layer = static_cast<ActivationLayer*>(device_layers[i]);
-			activationLayer_forwardPropagation<<<1, 1>>>(device_layers[i], output, output);
+			activationLayer_forwardPropagation<<<1, 1>>>(activation_layer, output, output);
 		}
 		cudaDeviceSynchronize();
 	}
@@ -205,7 +205,7 @@ public:
 			    // Eigen::MatrixXf output = x_train.row(index);
 				Eigen::MatrixXf * d_output;
 				int dataSize = x_train.row(index).size() * sizeof(float);
-				Eigen::MatrixXf * h_output = malloc(dataSize);
+				Eigen::MatrixXf * h_output = (Eigen::MatrixXf *) malloc(dataSize);
 				printf("x_train row size: %d\n", dataSize);
 				cudaMalloc((void **)&d_output, dataSize);
 				cudaMemcpy(d_output, x_train.row(index).data(), dataSize, cudaMemcpyHostToDevice);
