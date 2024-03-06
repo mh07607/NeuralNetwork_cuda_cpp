@@ -8,6 +8,8 @@
 #include <cuda_runtime.h>
 #include <numeric> //std::iota
 
+class Layer;
+
 __global__ void gpuNetwork_forwardPropagation(Layer ** device_layers, int num_layers, Eigen::MatrixXf& output){
 	for(int i = 0; i < num_layers; i++){
 		device_layers[i]->input = output;
