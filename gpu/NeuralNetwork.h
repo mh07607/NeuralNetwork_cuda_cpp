@@ -68,20 +68,20 @@ public:
 
 	Eigen::MatrixXf forwardPropagation(Eigen::MatrixXf& input)
 	{
-		// this->input = input;  
-		// this->output = input * weights + bias;  
-		// return this->output;
-		this->input = input;
-		float * output_arr;
-		int output_size = input.rows() * weights.cols() * sizeof(float);
-		float * h_output_arr = (float *)malloc(output_size);
-		cudaMalloc((void **)&output_arr, output_size);
-		MatrixMulKernel<<<input.rows(), input.cols()>>>
-		(input.data(), weights.data(), output_arr, bias.data(), input.rows(), weights.cols(), weights.rows());
-		cudaDeviceSynchronize();
-		cudaMemcpy(h_output_arr, output_arr, output_size, cudaMemcpyDeviceToHost);
-		this->output = Eigen::MatrixXf::Map(h_output_arr, input.rows(), input.cols());
+		this->input = input;  
+		this->output = input * weights + bias;  
 		return this->output;
+		// this->input = input;
+		// float * output_arr;
+		// int output_size = input.rows() * weights.cols() * sizeof(float);
+		// float * h_output_arr = (float *)malloc(output_size);
+		// cudaMalloc((void **)&output_arr, output_size);
+		// MatrixMulKernel<<<input.rows(), input.cols()>>>
+		// (input.data(), weights.data(), output_arr, bias.data(), input.rows(), weights.cols(), weights.rows());
+		// cudaDeviceSynchronize();
+		// cudaMemcpy(h_output_arr, output_arr, output_size, cudaMemcpyDeviceToHost);
+		// this->output = Eigen::MatrixXf::Map(h_output_arr, input.rows(), input.cols());
+		// return this->output;
 	}
 
 	//computes dE/dW, dE/dB for a given outputError = dE/dY. Returns input_error = dE/dX.
