@@ -117,13 +117,14 @@ public:
 	}
 };
 
-__global__ void activationLayer_forwardPropagation(Layer * device_layer, Eigen::MatrixXf * input, Eigen::MatrixXf * output){
+__device__ void activationLayer_forwardPropagation(Layer * device_layer, Eigen::MatrixXf * input, Eigen::MatrixXf * output){
 	*output = *input;
 }
 
-__global__ void denseLayer_forwardPropagation(DenseLayer * device_layer, Eigen::MatrixXf * input, Eigen::MatrixXf * output){
-	device_layer->input = *input;
-	*output = *input * device_layer->weights + device_layer->bias;
+__device__ void denseLayer_forwardPropagation(DenseLayer * device_layer, Eigen::MatrixXf * input, Eigen::MatrixXf * output){
+	int idx = blockIdx.x * blockDim.x + threadIdx.x;
+	device_layer->input[idx] = *input[idx];
+	*output[idx] = *input[idx].dot(device_layer->weights[idx]) + device_layer->bias[idx];
 }
 
 __global__ void gpuNetwork_forwardPropagation(Layer ** device_layers, int num_layers, Eigen::MatrixXf * output){
