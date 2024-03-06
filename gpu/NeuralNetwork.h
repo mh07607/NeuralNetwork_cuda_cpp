@@ -3,6 +3,8 @@
 #pragma once
 
 #include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
 #include <vector>
 #include <Eigen/Dense>
 #include <cuda_runtime.h>
@@ -61,7 +63,7 @@ public:
 		return inputError;
 	}
 
-private:
+public:
 	Eigen::MatrixXf weights;
 	Eigen::MatrixXf bias;
 };
@@ -92,7 +94,7 @@ public:
 		return (input.unaryExpr(activationPrime).array() * outputError.array()).matrix();
 	}
 
-private:
+public:
 	std::function<float(float)> activation;
 	std::function<float(float)> activationPrime;
 };
@@ -129,7 +131,7 @@ __global__ void gpuNetwork_forwardPropagation(Layer ** device_layers, int num_la
 		if(!device_layers[i]->type){
 			denseLayer_forwardPropagation<<<1, 1>>>(device_layers[i], output, output);
 		} else {
-			activationLayer_forwardPropagation(ActivationLayer * device_layer, output, output);
+			activationLayer_forwardPropagation<<<1, 1>>>(ActivationLayer * device_layer, output, output);
 		}
 	}
 }
@@ -201,7 +203,7 @@ public:
 				Eigen::MatrixXf * d_output;
 				Eigen::MatrixXf * h_output;
 				int dataSize = x_train.row(index).size() * sizeof(float);
-				print("x_train row size: %d\n", dataSize);
+				printf("x_train row size: %d\n", dataSize);
 				cudaMalloc((void **)&d_output, dataSize);
 				cudaMemcpy(d_output, x_train.row(index).data(), dataSize, cudaMemcpyHostToDevice);
 
