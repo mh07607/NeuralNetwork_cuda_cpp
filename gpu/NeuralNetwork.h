@@ -118,23 +118,23 @@ public:
 };
 
 __device__ void activationLayer_forwardPropagation(Layer * device_layer, Eigen::MatrixXf * input, Eigen::MatrixXf * output){
-	*output = *input;
+	// *output = *input;
 }
 
 __device__ void denseLayer_forwardPropagation(DenseLayer * device_layer, Eigen::MatrixXf * input, Eigen::MatrixXf * output){
 	int idx = blockIdx.x * blockDim.x + threadIdx.x;
-	device_layer->input[idx] = *input[idx];
-	*output[idx] = *input[idx].dot(device_layer->weights[idx]) + device_layer->bias[idx];
+	device_layer->input[idx] = (*input)[idx];
+	(*output)[idx] = (*input)[idx].dot(device_layer->weights[idx]) + device_layer->bias[idx];
 }
 
 __global__ void gpuNetwork_forwardPropagation(Layer ** device_layers, int num_layers, Eigen::MatrixXf * output){
 	for(int i = 0; i < num_layers; i++){
 		if(!device_layers[i]->type){
 			DenseLayer *dense_layer = static_cast<DenseLayer*>(device_layers[i]);
-			denseLayer_forwardPropagation<<<1, 1>>>(dense_layer, output, output);
+			denseLayer_forwardPropagation(dense_layer, output, output);
 		} else {
 			ActivationLayer *activation_layer = static_cast<ActivationLayer*>(device_layers[i]);
-			activationLayer_forwardPropagation<<<1, 1>>>(activation_layer, output, output);
+			activationLayer_forwardPropagation(activation_layer, output, output);
 		}
 		cudaDeviceSynchronize();
 	}
