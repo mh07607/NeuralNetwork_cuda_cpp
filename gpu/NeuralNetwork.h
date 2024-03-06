@@ -117,22 +117,25 @@ public:
 	}
 };
 
-__global__ void activationLayer_forwardPropagation(Layer * device_layer, Eigen::MatrixXf& input, Eigen::MatrixXf& output){
-	output = input;
+__global__ void activationLayer_forwardPropagation(Layer * device_layer, Eigen::MatrixXf * input, Eigen::MatrixXf * output){
+	*output = *input;
 }
 
-__global__ void denseLayer_forwardPropagation(DenseLayer * device_layer, Eigen::MatrixXf& input, Eigen::MatrixXf& output){
-	device_layer->input = input;
-	output = input * device_layer->weights + device_layer->bias;
+__global__ void denseLayer_forwardPropagation(DenseLayer * device_layer, Eigen::MatrixXf * input, Eigen::MatrixXf * output){
+	device_layer->input = *input;
+	*output = *input * device_layer->weights + device_layer->bias;
 }
 
-__global__ void gpuNetwork_forwardPropagation(Layer ** device_layers, int num_layers, Eigen::MatrixXf& output){
+__global__ void gpuNetwork_forwardPropagation(Layer ** device_layers, int num_layers, Eigen::MatrixXf * output){
 	for(int i = 0; i < num_layers; i++){
 		if(!device_layers[i]->type){
+			DenseLayer *dense_layer = static_cast<DenseLayer*>(device_layers[i]);
 			denseLayer_forwardPropagation<<<1, 1>>>(device_layers[i], output, output);
 		} else {
+			ActivationLayer *activation_layer = static_cast<ActivationLayer*>(device_layers[i]);
 			activationLayer_forwardPropagation<<<1, 1>>>(device_layers[i], output, output);
 		}
+		cudaDeviceSynchronize();
 	}
 }
 
@@ -201,8 +204,8 @@ public:
 				int index = order[j];
 			    // Eigen::MatrixXf output = x_train.row(index);
 				Eigen::MatrixXf * d_output;
-				Eigen::MatrixXf * h_output;
 				int dataSize = x_train.row(index).size() * sizeof(float);
+				Eigen::MatrixXf * h_output = malloc(dataSize);
 				printf("x_train row size: %d\n", dataSize);
 				cudaMalloc((void **)&d_output, dataSize);
 				cudaMemcpy(d_output, x_train.row(index).data(), dataSize, cudaMemcpyHostToDevice);
@@ -211,14 +214,14 @@ public:
 				gpuNetwork_forwardPropagation<<<1, 1>>>(device_layers.data(), num_layers, d_output);
 				// for (Layer* layer : layers)				 	
 				//  	output = layer->forwardPropagation(output);
-				cudaMemcpy(h_output, d_output, sizeof(Eigen::MatrixXf), cudaMemcpyDeviceToHost);	  
+				cudaMemcpy(h_output, d_output, dataSize, cudaMemcpyDeviceToHost);	  
 				// compute loss(for display purpose only)
 				Eigen::MatrixXf y = y_train.row(index);
 				
-				err += loss(y, h_output);
+				err += loss(y, *h_output);
 				
 				//backward propagation 
-				Eigen::MatrixXf error = lossPrime(y, h_output); 
+				Eigen::MatrixXf error = lossPrime(y, *h_output); 
 
 				for (std::vector<Layer*>::reverse_iterator layer = layers.rbegin(); layer != layers.rend(); ++layer) 
 					error = (*layer)->backwardPropagation(error, learningRate); 
