@@ -8,24 +8,6 @@
 #include <cuda_runtime.h>
 #include <numeric> //std::iota
 
-class Layer;
-
-__global__ void gpuNetwork_forwardPropagation(Layer ** device_layers, int num_layers, Eigen::MatrixXf& output){
-	for(int i = 0; i < num_layers; i++){
-		device_layers[i]->input = output;
-		output = output * device_layers[i]->weights + device_layers[i]->bias;
-		__syncthreads();
-	}
-}
-
-__global__ void activationLayer_forwardPropagation(Layer * device_layer, Eigen::MatrixXf& input, Eigen::MatrixXf& output){
-	output = input;
-}
-
-__global__ void denseLayer_forwardPropagation(Layer * device_layer, Eigen::MatrixXf& input, Eigen::MatrixXf& output){
-	device_layer->input = input;
-	output = input * device_layer->weights + device_layer->bias;
-}
 
 void printMatrixSize(const std::string msg, const Eigen::MatrixXf& m)
 {
@@ -45,6 +27,24 @@ protected:
 	Eigen::MatrixXf input;
 	Eigen::MatrixXf output;
 };
+
+__global__ void gpuNetwork_forwardPropagation(Layer ** device_layers, int num_layers, Eigen::MatrixXf& output){
+	for(int i = 0; i < num_layers; i++){
+		device_layers[i]->input = output;
+		output = output * device_layers[i]->weights + device_layers[i]->bias;
+		__syncthreads();
+	}
+}
+
+__global__ void activationLayer_forwardPropagation(Layer * device_layer, Eigen::MatrixXf& input, Eigen::MatrixXf& output){
+	output = input;
+}
+
+__global__ void denseLayer_forwardPropagation(Layer * device_layer, Eigen::MatrixXf& input, Eigen::MatrixXf& output){
+	device_layer->input = input;
+	output = input * device_layer->weights + device_layer->bias;
+}
+
 
 class DenseLayer : public Layer
 {
