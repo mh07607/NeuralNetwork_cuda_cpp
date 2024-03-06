@@ -23,7 +23,7 @@ public:
 	virtual Eigen::MatrixXf forwardPropagation(Eigen::MatrixXf& input) = 0;
 	virtual Eigen::MatrixXf backwardPropagation(Eigen::MatrixXf& output, float learningRate) = 0;
 
-protected:
+public:
 	Eigen::MatrixXf input;
 	Eigen::MatrixXf output;
 };
