@@ -131,7 +131,7 @@ __global__ void gpuNetwork_forwardPropagation(Layer ** device_layers, int num_la
 		if(!device_layers[i]->type){
 			denseLayer_forwardPropagation<<<1, 1>>>(device_layers[i], output, output);
 		} else {
-			activationLayer_forwardPropagation<<<1, 1>>>(ActivationLayer * device_layer, output, output);
+			activationLayer_forwardPropagation<<<1, 1>>>(device_layers[i], output, output);
 		}
 	}
 }
@@ -215,10 +215,10 @@ public:
 				// compute loss(for display purpose only)
 				Eigen::MatrixXf y = y_train.row(index);
 				
-				err += loss(y, output);
+				err += loss(y, h_output);
 				
 				//backward propagation 
-				Eigen::MatrixXf error = lossPrime(y, output); 
+				Eigen::MatrixXf error = lossPrime(y, h_output); 
 
 				for (std::vector<Layer*>::reverse_iterator layer = layers.rbegin(); layer != layers.rend(); ++layer) 
 					error = (*layer)->backwardPropagation(error, learningRate); 
