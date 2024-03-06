@@ -26,24 +26,8 @@ public:
 public:
 	Eigen::MatrixXf input;
 	Eigen::MatrixXf output;
+	int type;
 };
-
-__global__ void gpuNetwork_forwardPropagation(Layer ** device_layers, int num_layers, Eigen::MatrixXf& output){
-	for(int i = 0; i < num_layers; i++){
-		device_layers[i]->input = output;
-		output = output * device_layers[i]->weights + device_layers[i]->bias;
-		__syncthreads();
-	}
-}
-
-__global__ void activationLayer_forwardPropagation(Layer * device_layer, Eigen::MatrixXf& input, Eigen::MatrixXf& output){
-	output = input;
-}
-
-__global__ void denseLayer_forwardPropagation(Layer * device_layer, Eigen::MatrixXf& input, Eigen::MatrixXf& output){
-	device_layer->input = input;
-	output = input * device_layer->weights + device_layer->bias;
-}
 
 
 class DenseLayer : public Layer
@@ -52,6 +36,7 @@ public:
 	DenseLayer(int inputSize, int  outputSize)
 	{
 		//Eigen::MatrixXf::Random returns values from [-1,1] we should scale it to [-0.5,0.5]
+		type = 0;
 		weights = Eigen::MatrixXf::Random(inputSize, outputSize).array() * 0.5f;
 		bias = Eigen::MatrixXf::Random(1, outputSize).array() * 0.5f; 
 	}
@@ -79,7 +64,6 @@ public:
 private:
 	Eigen::MatrixXf weights;
 	Eigen::MatrixXf bias;
-	int type = 0;
 };
 
 class ActivationLayer : public Layer
@@ -88,6 +72,7 @@ public:
 	ActivationLayer(std::function<float(float)> activation,
 		std::function<float(float)> activationPrime)
 	{
+		type = 1;
 		this->activation = activation;
 		this->activationPrime = activationPrime;
 	}
@@ -110,7 +95,6 @@ public:
 private:
 	std::function<float(float)> activation;
 	std::function<float(float)> activationPrime;
-	int type = 1;
 };
 
 class FlattenLayer :public Layer
@@ -118,6 +102,7 @@ class FlattenLayer :public Layer
 public:
 	Eigen::MatrixXf forwardPropagation(Eigen::MatrixXf& input)
 	{
+		type = 2;
 		this->input = input;
 		this->output = input;
 		this->output.resize(1, input.rows() * input.cols()); //flatten
@@ -129,6 +114,25 @@ public:
 		return outputError;
 	}
 };
+
+__global__ void activationLayer_forwardPropagation(Layer * device_layer, Eigen::MatrixXf& input, Eigen::MatrixXf& output){
+	output = input;
+}
+
+__global__ void denseLayer_forwardPropagation(DenseLayer * device_layer, Eigen::MatrixXf& input, Eigen::MatrixXf& output){
+	device_layer->input = input;
+	output = input * device_layer->weights + device_layer->bias;
+}
+
+__global__ void gpuNetwork_forwardPropagation(Layer ** device_layers, int num_layers, Eigen::MatrixXf& output){
+	for(int i = 0; i < num_layers; i++){
+		if(!device_layers[i]->type){
+			denseLayer_forwardPropagation<<<1, 1>>>(device_layers[i], output, output);
+		} else {
+			activationLayer_forwardPropagation(ActivationLayer * device_layer, output, output);
+		}
+	}
+}
 
 class GPUNetwork
 {
