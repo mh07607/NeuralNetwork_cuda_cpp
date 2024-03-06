@@ -160,10 +160,10 @@ public:
 	void add(Layer* layer)
 	{
 		layers.push_back(layer);
-		Layer * device_layer;
-		cudaMalloc((void**)&device_layer, sizeof(Layer));
-		cudaMemcpy(device_layer, layer, sizeof(Layer), cudaMemcpyHostToDevice);
-		device_layers.push_back(device_layer);
+		// Layer * device_layer;
+		// cudaMalloc((void**)&device_layer, sizeof(Layer));
+		// cudaMemcpy(device_layer, layer, sizeof(Layer), cudaMemcpyHostToDevice);
+		// device_layers.push_back(device_layer);
 	}
 
 	void use(std::function<float(Eigen::MatrixXf&, Eigen::MatrixXf&)> lossF, std::function<Eigen::MatrixXf(Eigen::MatrixXf&, Eigen::MatrixXf&)> lossDer)
