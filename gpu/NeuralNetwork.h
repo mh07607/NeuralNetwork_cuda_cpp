@@ -6,10 +6,34 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
-#include <Eigen/Dense>
 #include <cuda_runtime.h>
 #include <numeric> //std::iota
 
+__global__ void MatrixMulKernel(float* d_M, float* d_N, float* d_P, int M, int N) {
+	// Calculate the row index of the d_Pelement and d_M
+	int Row = blockIdx.y*blockDim.y+threadIdx.y;
+	// Calculate the column index of d_P and d_N
+	int Col = blockIdx.x*blockDim.x+threadIdx.x;
+	if ((Row < M) && (Col < N)) {
+		float Pvalue = 0;
+		// each thread computes one element of the block sub-matrix
+		for (int k = 0; k < Width; ++k) {
+			Pvalue += d_M[Row*M+k]*d_N[k*M+Col];
+		}
+		d_P[Row*M+Col] = Pvalue;
+	}
+}
+
+void MatrixMul(float * d_M, float * d_N, float * d_P, float * d_b; int M, int N){
+	for(int j = 0; j < N; j++){
+		for(int i = 0; i < M; i++){
+			d_P[i*M + j] = 0;
+			for(int k = 0; k < M; k++){
+				d_P[i*m += 
+			}
+		}
+	}
+}
 
 void printMatrixSize(const std::string msg, const Eigen::MatrixXf& m)
 {
@@ -28,7 +52,6 @@ public:
 public:
 	Eigen::MatrixXf input;
 	Eigen::MatrixXf output;
-	int type;
 };
 
 
@@ -38,7 +61,6 @@ public:
 	DenseLayer(int inputSize, int  outputSize)
 	{
 		//Eigen::MatrixXf::Random returns values from [-1,1] we should scale it to [-0.5,0.5]
-		type = 0;
 		weights = Eigen::MatrixXf::Random(inputSize, outputSize).array() * 0.5f;
 		bias = Eigen::MatrixXf::Random(1, outputSize).array() * 0.5f; 
 	}
@@ -117,28 +139,7 @@ public:
 	}
 };
 
-__device__ void activationLayer_forwardPropagation(Layer * device_layer, Eigen::MatrixXf * input, Eigen::MatrixXf * output){
-	// *output = *input;
-}
 
-__device__ void denseLayer_forwardPropagation(DenseLayer * device_layer, Eigen::MatrixXf * input, Eigen::MatrixXf * output){
-	int idx = blockIdx.x * blockDim.x + threadIdx.x;
-	device_layer->input[idx] = (*input)[idx];
-	(*output)[idx] = (*input)[idx].dot(device_layer->weights[idx]) + device_layer->bias[idx];
-}
-
-__global__ void gpuNetwork_forwardPropagation(Layer ** device_layers, int num_layers, Eigen::MatrixXf * output){
-	for(int i = 0; i < num_layers; i++){
-		if(!device_layers[i]->type){
-			DenseLayer *dense_layer = static_cast<DenseLayer*>(device_layers[i]);
-			denseLayer_forwardPropagation(dense_layer, output, output);
-		} else {
-			ActivationLayer *activation_layer = static_cast<ActivationLayer*>(device_layers[i]);
-			activationLayer_forwardPropagation(activation_layer, output, output);
-		}
-		cudaDeviceSynchronize();
-	}
-}
 
 class GPUNetwork
 {

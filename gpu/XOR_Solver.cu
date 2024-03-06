@@ -5,11 +5,11 @@
 
 int main()
 { 
-	std::cout << "Using Eigen ver: " << EIGEN_WORLD_VERSION << "." << EIGEN_MAJOR_VERSION << "." << EIGEN_MINOR_VERSION << std::endl;
+	// std::cout << "Using Eigen ver: " << EIGEN_WORLD_VERSION << "." << EIGEN_MAJOR_VERSION << "." << EIGEN_MINOR_VERSION << std::endl;
 
 	//test the XOR solver
-	Eigen::MatrixXf x_train{ {0, 0}, {0, 1}, {1, 0}, {1,1} };
-	Eigen::MatrixXf y_train{ {0}, {1}, {1}, {0} };
+	double x_train{ {0, 0}, {0, 1}, {1, 0}, {1, 1} };
+	double y_train{ {0}, {1}, {1}, {0} };
 
 	GPUNetwork nn;
 	nn.add(new DenseLayer(2, 3));
