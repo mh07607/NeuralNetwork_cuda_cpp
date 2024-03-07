@@ -9,12 +9,15 @@ int main()
 
 	//test the XOR solver
 	Eigen::MatrixXf x_train{ {0, 0}, {0, 1}, {1, 0}, {1,1} };
-	Eigen::MatrixXf y_train{ {0}, {1}, {1}, {0} };
+	//Eigen::MatrixXf y_train{ {0}, {1}, {1}, {0} };
+	Eigen::MatrixXf y_train(4, 1);
+	y_train << 0, 
+			1, 
+			1, 
+			0;
 
 	for (int i = 0; i < x_train.size(); i++)
   		std::cout << *(x_train.data() + i) << "  ";
-
-	
 
 	Network nn;
 	nn.add(new DenseLayer(2, 3));
