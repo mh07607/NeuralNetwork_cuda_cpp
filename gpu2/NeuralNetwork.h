@@ -73,7 +73,7 @@ public:
 		cudaMalloc((void **)&d_bias, bias.rows() * bias.cols() * sizeof(float));
 
 		cudaMemcpy(d_input, input.data(), input.rows() * input.cols() * sizeof(float), cudaMemcpyHostToDevice);
-		cudaMemcpy(d_weights, weights.data(), weights.rows() * wegihts.cols() * sizeof(float), cudaMemcpyHostToDevice);
+		cudaMemcpy(d_weights, weights.data(), weights.rows() * weights.cols() * sizeof(float), cudaMemcpyHostToDevice);
 		cudaMemcpy(d_bias, bias.data(), bias.rows() * bias.cols() * sizeof(float), cudaMemcpyHostToDevice);
 
 		dim3 block_size(input.rows(), weights.cols(), 1);
