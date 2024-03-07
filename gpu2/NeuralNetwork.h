@@ -56,7 +56,7 @@ public:
 	{
 		this->input = input;  
 		this->output = input * weights + bias;  
-		std::cout << this->output << std::endl;
+		std::cout << "Actual output: " << this->output << std::endl;
 
 		this->input = input;
 		float * output_arr;
@@ -69,7 +69,7 @@ public:
 		cudaDeviceSynchronize();
 		cudaMemcpy(h_output_arr, output_arr, output_size, cudaMemcpyDeviceToHost);
 		this->output = Eigen::MatrixXf::Map(h_output_arr, input.rows(), input.cols());
-		std::cout << this->output << std::endl;
+		std::cout << "My kernel output: " << this->output << std::endl;
 		return this->output;
 	}
 
