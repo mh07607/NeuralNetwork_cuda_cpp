@@ -76,8 +76,10 @@ public:
 		cudaMemcpy(d_weights, weights.data(), weights.rows() * weights.cols() * sizeof(float), cudaMemcpyHostToDevice);
 		cudaMemcpy(d_bias, bias.data(), bias.rows() * bias.cols() * sizeof(float), cudaMemcpyHostToDevice);
 
-		dim3 block_size(input.rows(), weights.cols(), 1);
-		dim3 grid_size(1, 1, 1);
+		dim3 block_size(32, 32, 1);
+		dim3 grid_size;
+		grid_size.x = (input.rows() + block_size.x - 1) / block_size.x;
+		grid_size.y = (weights.columns() + block_size.y - 1) / block_size.y;
 		MatrixMulKernel<<<grid_size, block_size>>>
 		(d_input, d_weights, output_arr, d_bias, input.rows(), weights.cols(), weights.rows());
 		cudaDeviceSynchronize();
