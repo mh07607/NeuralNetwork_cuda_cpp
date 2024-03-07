@@ -13,7 +13,7 @@ __global__ void MatrixMulKernel(float* d_M, float* d_N, float* d_P, float * d_B,
 	int Row = blockIdx.y*blockDim.y+threadIdx.y;
 	// Calculate the column index of d_P and d_N
 	int Col = blockIdx.x*blockDim.x+threadIdx.x;
-	if ((Row < M) && (Col < P)) {
+	if ((Row < M) && (Col < N)) {
 		float Pvalue = 0;
 		// each thread computes one element of the block sub-matrix
 		for (int k = 0; k < P; ++k) {
