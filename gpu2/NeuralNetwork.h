@@ -54,22 +54,22 @@ public:
 
 	Eigen::MatrixXf forwardPropagation(Eigen::MatrixXf& input)
 	{
-		this->input = input;  
-		this->output = input * weights + bias;  
-		std::cout << "Actual output: " << this->output << std::endl;
+		// this->input = input;  
+		// this->output = input * weights + bias;  
+		// std::cout << "Actual output: " << this->output << std::endl;
 
-		// this->input = input;
-		// float * output_arr;
-		// int output_size = input.rows() * weights.cols() * sizeof(float);
-		// // std::cout << "Output size: " << input.rows() << weights.cols() << weights.rows() << output_size << std::endl;
-		// float * h_output_arr = (float *)malloc(output_size);
-		// cudaMalloc((void **)&output_arr, output_size);
-		// dim3 block_size(input.rows(), weights.cols(), 1);
-		// MatrixMulKernel<<<1, block_size>>>
-		// (input.data(), weights.data(), output_arr, bias.data(), input.rows(), weights.cols(), weights.rows());
-		// cudaDeviceSynchronize();
-		// cudaMemcpy(h_output_arr, output_arr, output_size, cudaMemcpyDeviceToHost);
-		// this->output = Eigen::MatrixXf::Map(h_output_arr, input.rows(), weights.cols());
+		this->input = input;
+		float * output_arr;
+		int output_size = input.rows() * weights.cols() * sizeof(float);
+		// std::cout << "Output size: " << input.rows() << weights.cols() << weights.rows() << output_size << std::endl;
+		float * h_output_arr = (float *)malloc(output_size);
+		cudaMalloc((void **)&output_arr, output_size);
+		dim3 block_size(input.rows(), weights.cols(), 1);
+		MatrixMulKernel<<<1, block_size>>>
+		(input.data(), weights.data(), output_arr, bias.data(), input.rows(), weights.cols(), weights.rows());
+		cudaDeviceSynchronize();
+		cudaMemcpy(h_output_arr, output_arr, output_size, cudaMemcpyDeviceToHost);
+		this->output = Eigen::MatrixXf::Map(h_output_arr, input.rows(), weights.cols());
 		// std::cout << "My kernel output: " << this->output << std::endl;
 		return this->output;
 	}
@@ -206,16 +206,16 @@ public:
 				// compute loss(for display purpose only)
 				Eigen::MatrixXf y = y_train.row(index);
 				   
-				std::cout << "done with layers" << std::endl;
+				// std::cout << "done with layers" << std::endl;
 				err += loss(y, output);
-				std::cout << "loss calculated" << std::endl;
+				// std::cout << "loss calculated" << std::endl;
 				//backward propagation 
 				Eigen::MatrixXf error = lossPrime(y, output); 
-				std::cout << "loss prime calculated" << std::endl;
+				// std::cout << "loss prime calculated" << std::endl;
 
 				for (std::vector<Layer*>::reverse_iterator layer = layers.rbegin(); layer != layers.rend(); ++layer) 
 					error = (*layer)->backwardPropagation(error, learningRate); 
-					std::cout << "layer backwards propagated" << std::endl;
+					// std::cout << "layer backwards propagated" << std::endl;
 				 
 			}
 			err /= (float)samples;

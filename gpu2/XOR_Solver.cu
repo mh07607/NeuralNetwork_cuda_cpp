@@ -9,6 +9,9 @@ int main()
 
 	//test the XOR solver
 	Eigen::MatrixXf x_train{ {0, 0}, {0, 1}, {1, 0}, {1,1} };
+	// For some reason, when you change the file extension from
+	// .cpp to .cu, the following matrix size is 1x4 instead of
+	// 4x1.
 	//Eigen::MatrixXf y_train{ {0}, {1}, {1}, {0} };
 	Eigen::MatrixXf y_train(4, 1);
 	y_train << 0, 
