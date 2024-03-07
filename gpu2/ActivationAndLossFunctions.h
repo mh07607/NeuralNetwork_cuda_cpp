@@ -5,10 +5,6 @@
 #include <iostream>
 #include <Eigen/Dense>
 
-void printMatrixSize(const std::string msg, const Eigen::MatrixXf& m)
-{
-	std::cout << msg.c_str() << "[" << m.rows() << "," << m.cols() << "]" << std::endl;
-}
 
 //activation functions
 float sigmoid(float x)
