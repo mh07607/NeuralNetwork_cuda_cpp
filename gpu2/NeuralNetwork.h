@@ -79,7 +79,7 @@ public:
 		dim3 block_size(32, 32, 1);
 		dim3 grid_size;
 		grid_size.x = (input.rows() + block_size.x - 1) / block_size.x;
-		grid_size.y = (weights.columns() + block_size.y - 1) / block_size.y;
+		grid_size.y = (weights.cols() + block_size.y - 1) / block_size.y;
 		MatrixMulKernel<<<grid_size, block_size>>>
 		(d_input, d_weights, output_arr, d_bias, input.rows(), weights.cols(), weights.rows());
 		cudaDeviceSynchronize();
