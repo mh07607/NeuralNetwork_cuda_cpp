@@ -58,19 +58,19 @@ public:
 		this->output = input * weights + bias;  
 		std::cout << "Actual output: " << this->output << std::endl;
 
-		this->input = input;
-		float * output_arr;
-		int output_size = input.rows() * weights.cols() * sizeof(float);
-		// std::cout << "Output size: " << input.rows() << weights.cols() << weights.rows() << output_size << std::endl;
-		float * h_output_arr = (float *)malloc(output_size);
-		cudaMalloc((void **)&output_arr, output_size);
-		dim3 block_size(input.rows(), weights.cols(), 1);
-		MatrixMulKernel<<<1, block_size>>>
-		(input.data(), weights.data(), output_arr, bias.data(), input.rows(), weights.cols(), weights.rows());
-		cudaDeviceSynchronize();
-		cudaMemcpy(h_output_arr, output_arr, output_size, cudaMemcpyDeviceToHost);
-		this->output = Eigen::MatrixXf::Map(h_output_arr, input.rows(), weights.cols());
-		std::cout << "My kernel output: " << this->output << std::endl;
+		// this->input = input;
+		// float * output_arr;
+		// int output_size = input.rows() * weights.cols() * sizeof(float);
+		// // std::cout << "Output size: " << input.rows() << weights.cols() << weights.rows() << output_size << std::endl;
+		// float * h_output_arr = (float *)malloc(output_size);
+		// cudaMalloc((void **)&output_arr, output_size);
+		// dim3 block_size(input.rows(), weights.cols(), 1);
+		// MatrixMulKernel<<<1, block_size>>>
+		// (input.data(), weights.data(), output_arr, bias.data(), input.rows(), weights.cols(), weights.rows());
+		// cudaDeviceSynchronize();
+		// cudaMemcpy(h_output_arr, output_arr, output_size, cudaMemcpyDeviceToHost);
+		// this->output = Eigen::MatrixXf::Map(h_output_arr, input.rows(), weights.cols());
+		// std::cout << "My kernel output: " << this->output << std::endl;
 		return this->output;
 	}
 

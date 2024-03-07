@@ -44,7 +44,7 @@ float one_minus(float x)
 float mse(Eigen::MatrixXf& y_true, Eigen::MatrixXf& y_pred)
 {
 	printMatrixSize("y_true", y_true);
-	printMatrixSize("y_true", y_pred);
+	printMatrixSize("y_pred", y_pred);
 	auto diff = (y_true - y_pred ).array() ;
 	return  ( diff * diff).mean();
 	//return ((y_true - y_pred) * (y_true - y_pred)).mean();
