@@ -68,7 +68,7 @@ public:
 		cudaDeviceSynchronize();
 		cudaMemcpy(h_output_arr, output_arr, output_size, cudaMemcpyDeviceToHost);
 		this->output = Eigen::MatrixXf::Map(h_output_arr, input.rows(), input.cols());
-		std::cout << this->output << endl;
+		std::cout << this->output << std::endl;
 		return this->output;
 	}
 
