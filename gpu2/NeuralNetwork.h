@@ -206,6 +206,7 @@ public:
 				// compute loss(for display purpose only)
 				Eigen::MatrixXf y = y_train.row(index);
 				   
+				std::cout << "done with layers" << std::endl;
 				err += loss(y, output);
 				std::cout << "loss calculated" << std::endl;
 				//backward propagation 
