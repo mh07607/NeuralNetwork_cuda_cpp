@@ -17,9 +17,9 @@ __global__ void MatrixMulKernel(float* d_M, float* d_N, float* d_P, float * d_B,
 		float Pvalue = 0;
 		// each thread computes one element of the block sub-matrix
 		for (int k = 0; k < P; ++k) {
-			Pvalue += d_M[Row*P+k]*d_N[k*N+Col];
+			Pvalue += d_M[Row*M+k]*d_N[k*M+Col];
 		}
-		d_P[Row*N+Col] = Pvalue + d_B[Row*N+Col];
+		d_P[Row*M+Col] = Pvalue + d_B[Row*M+Col];
 	}
 }
 
