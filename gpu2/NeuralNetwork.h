@@ -207,12 +207,14 @@ public:
 				Eigen::MatrixXf y = y_train.row(index);
 				   
 				err += loss(y, output);
-				
+				std::cout << "loss calculated" << endl;
 				//backward propagation 
-				Eigen::MatrixXf error = lossPrime(y, output); 
+				Eigen::MatrixXf error = lossPrime(y, ou\tput); 
+				std::cout << "loss prime calculated" << endl;
 
 				for (std::vector<Layer*>::reverse_iterator layer = layers.rbegin(); layer != layers.rend(); ++layer) 
 					error = (*layer)->backwardPropagation(error, learningRate); 
+					std::cout << "layer backwards propagated" << endl;
 				 
 			}
 			err /= (float)samples;
