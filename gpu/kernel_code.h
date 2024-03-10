@@ -26,4 +26,8 @@ __global__ void DenseBackwardPass(
 );
 __global__ void tanh2_gpu(float * arr, int M, int N);
 
+__global__ void tanh2Prime_gpu(float * arr, int M, int N);
+
+__global__ void element_wise_mul(float * d_M, float * d_N, int M, int N);
+
 #endif 

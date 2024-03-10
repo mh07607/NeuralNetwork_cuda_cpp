@@ -1,5 +1,5 @@
 #include "kernel_code.h"
-#include <math_functions.h>
+// #include <math_functions.h>
 
 
 __global__ void DenseForwardPass(float* d_M, float* d_N, float* d_P, float * d_B, int M, int N, int P) {
@@ -56,6 +56,24 @@ __global__ void tanh2_gpu(float * arr, int M, int N){
 
     if((Row < M) && (Col < N)){
         arr[Row * N + Col] = tanh(arr[Row * N + Col]);
+    }
+}
+
+__global__ void tanh2Prime_gpu(float * arr, int M, int N){
+    int Row = blockIdx.y * blockDim.y + threadIdx.y;
+	int Col = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if((Row < M) && (Col < N)){
+        arr[Row * N + Col] = 1.0f - powf(tanh(arr[Row * N + Col]), 2.0f);
+    }
+}
+
+__global__ void element_wise_mul(float * d_M, float * d_N, int M, int N){
+    int Row = blockIdx.y * blockDim.y + threadIdx.y;
+    int Col = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if((Row < M) && (Col < N)){
+        d_M[Row * N + Col] = d_M[Row * N + Col] * d_N[Row * N + Col];
     }
 }
 

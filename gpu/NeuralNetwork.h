@@ -200,8 +200,8 @@ public:
 	Eigen::MatrixXf forwardPropagation(Eigen::MatrixXf& input)
 	{
 		this->input = input;
-		this->output = input.unaryExpr(activation);
-		std::cout << "Real output: " << this->output << std::endl;
+		// this->output = input.unaryExpr(activation);
+		// std::cout << "Real output: " << this->output << std::endl;
 		dim3 block_size(32, 32, 1);
 		dim3 grid_size;
 		grid_size.x = (input.rows() + block_size.x - 1) / block_size.x;
@@ -219,7 +219,7 @@ public:
 		cudaFree(d_input);
 		// this->input = input;
 		// this->output = input.unaryExpr(activation);
-		std::cout << "My output: " << this->output << std::endl;
+		// std::cout << "My output: " << this->output << std::endl;
 		return this->output;
 	}
 
@@ -227,7 +227,32 @@ public:
 	//learningRate is not used because there is no "learnable" parameters.
 	Eigen::MatrixXf backwardPropagation(Eigen::MatrixXf& outputError, float learningRate)
 	{ 
-		return (input.unaryExpr(activationPrime).array() * outputError.array()).matrix();
+		std::cout << "Actual Output: "<< (input.unaryExpr(activationPrime).array() * outputError.array()).matrix() << std::endl;
+		dim3 block_size(32, 32, 1);
+		dim3 grid_size;
+		grid_size.x = (outputError.rows() + block_size.x - 1) / block_size.x;
+		grid_size.y = (outputError.cols() + block_size.y - 1) / block_size.y;
+
+		float * d_outputError;
+		float * d_input;
+		float * output = malloc(outputError.rows() * outputError.cols() * sizeof(float));
+		cudaMalloc((void **) &d_outputError, outputError.rows() * outputError.cols() * sizeof(float));
+		cudaMalloc((void **) &d_input, input.rows() * input.cols() * sizeof(float));
+		cudaMemcpy(d_input, input.data(), outputError.rows() * outputError.cols() * sizeof(float), cudaMemcpyHostToDevice);
+		cudaMemcpy(d_outputError, outputError.data(), outputError.rows() * outputError.cols() * sizeof(float), cudaMemcpyHostToDevice);
+
+		switch(this->yeet){
+			case 1:
+				tanh2Prime_gpu<<<grid_size, block_size>>>(d_input, input.rows(), input.cols());
+				break;
+		}
+		cudaDeviceSyncrhonize();
+
+		element_wise_mul<<<grid_size, block_size>>>(d_outputError, d_input, input.rows(), input.cols());
+		cudaMemcpy(output, d_outputError, outputError.rows() * outputError.cols() * sizeof(float), cudaMemcpyDeviceToHost);
+		Eigen::MatrixXf output_matrix = Eigen::MatrixXf::Map(output, outputError.rows(), outputError.cols());
+		std::cout << "My output: " << output_matrix << std::endl;
+		return output_matrix;
 	}
 
 private:
