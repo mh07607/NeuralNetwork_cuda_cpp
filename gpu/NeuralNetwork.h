@@ -97,13 +97,6 @@ public:
 		// For retrieving the input error on host
 		float * h_inputError = (float *) malloc (inputError_size);
 
-		cudaError_t cudaError = cudaGetLastError();
-		if(cudaError != cudaSuccess) {
-			printf("CUDA error after kernel launch: %s\n", cudaGetErrorString(cudaError));
-			//return 1; // return an error code
-		}
-
-
 		cudaMalloc((void **) &d_outputError, outputError_size);
 		cudaMalloc((void **) &d_input, input_size);
 		cudaMalloc((void **) &d_weights, weights_size);
