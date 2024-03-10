@@ -112,13 +112,13 @@ public:
 		 d_bias,
 		 d_inputError,
 		 d_weightsError,
-		 learing_rate,
+		 learning_rate,
 		 outputError.rows(),
 		 outputError.cols(),
-		 d_input.rows(),
-		 d_input.cols(),
-		 d_weights.rows(),
-		 d_weights.cols()
+		 input.rows(),
+		 input.cols(),
+		 weights.rows(),
+		 weights.cols()
 		 );
 		cudaDeviceSynchronize();
 

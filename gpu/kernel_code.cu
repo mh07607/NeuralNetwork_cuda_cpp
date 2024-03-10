@@ -90,7 +90,7 @@ __global__ void DenseBackwardPass(
 
     grid_size.x = (i_c + block_size.x - 1) / block_size.x;
     grid_size.y = (o_c + block_size.y - 1) / block_size.y;
-    MatrixMulKernel<<<grid_size, block_size>>>(d_input_T, d_outputError, i_c, o_c, o_r);
+    MatrixMulKernel<<<grid_size, block_size>>>(d_weightsError, d_input_T, d_outputError, i_c, o_c, o_r);
 
     __syncthreads();
 
