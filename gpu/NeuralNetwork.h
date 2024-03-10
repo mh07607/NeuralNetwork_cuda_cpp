@@ -246,7 +246,7 @@ public:
 				tanh2Prime_gpu<<<grid_size, block_size>>>(d_input, input.rows(), input.cols());
 				break;
 		}
-		cudaDeviceSyncrhonize();
+		cudaDeviceSynchronize();
 
 		element_wise_mul<<<grid_size, block_size>>>(d_outputError, d_input, input.rows(), input.cols());
 		cudaMemcpy(output, d_outputError, outputError.rows() * outputError.cols() * sizeof(float), cudaMemcpyDeviceToHost);
