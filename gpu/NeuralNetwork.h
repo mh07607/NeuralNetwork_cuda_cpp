@@ -120,21 +120,7 @@ public:
 
 		
 		DenseBackwardPass<<<1, 1>>>
-		(d_outputError,
-	     d_input,
-		 d_weights,
-		 d_bias,
-		 d_inputError,
-		 d_weightsError,
-		 d_weights_T,
-		 d_input_T,
-		 learningRate,
-		 outputError.rows(),
-		 outputError.cols(),
-		 input.rows(),
-		 input.cols(),
-		 weights.rows(),
-		 weights.cols()
+		(
 		 );
 
 		
