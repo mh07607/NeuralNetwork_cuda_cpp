@@ -8,7 +8,7 @@
 #include <cuda_runtime.h>
 #include <numeric> //std::iota
 
-__global__ void MatrixMulKernel(float* d_M, float* d_N, float* d_P, float * d_B, int M, int N, int P) {
+__global__ void DenseForwardPass(float* d_M, float* d_N, float* d_P, float * d_B, int M, int N, int P) {
 	// Calculate the row index of the d_Pelement and d_M
 	int Row = blockIdx.y*blockDim.y+threadIdx.y;
 	// Calculate the column index of d_P and d_N
@@ -20,6 +20,38 @@ __global__ void MatrixMulKernel(float* d_M, float* d_N, float* d_P, float * d_B,
 			Pvalue += d_M[Row*P+k]*d_N[k*N+Col];
 		}
 		d_P[Row*N+Col] = Pvalue + d_B[Row*N+Col];
+	}
+}
+
+__global void test(){
+	int x = 5;
+}
+
+__global__ void DenseBackwardPass(){
+	test<<<1, 1>>>();
+}
+
+__global__ void MatrixMulKernel(float* d_M, float* d_N, float* d_P, float * d_B, int M, int N, int P) {
+	// Calculate the row index of the d_Pelement and d_M
+	int Row = blockIdx.y*blockDim.y+threadIdx.y;
+	// Calculate the column index of d_P and d_N
+	int Col = blockIdx.x*blockDim.x+threadIdx.x;
+	if ((Row < M) && (Col < N)) {
+		float Pvalue = 0;
+		// each thread computes one element of the block sub-matrix
+		for (int k = 0; k < P; ++k) {
+			Pvalue += d_M[Row*P+k]*d_N[k*N+Col];
+		}
+		d_P[Row*N+Col] = Pvalue;
+	}
+}
+
+__global__ void MatrixSubtractionKernel(float* d_M, float* d_N, float* d_P){
+	int Row = blockIdx.y * blockDim.y + threadIdx.y;
+	int Col = blockIdx.x * blockDim.x + threadIdx.x;
+
+	if((Row < M) && (Col < N)){
+		d_P[Row*N+Col] = ;
 	}
 }
 
@@ -54,10 +86,6 @@ public:
 
 	Eigen::MatrixXf forwardPropagation(Eigen::MatrixXf& input)
 	{
-		// this->input = input;  
-		// this->output = input * weights + bias;  
-		// std::cout << "Actual output: " << this->output << std::endl;
-
 		this->input = input;
 		float * output_arr;
 		int output_size = input.rows() * weights.cols() * sizeof(float);
@@ -80,7 +108,7 @@ public:
 		dim3 grid_size;
 		grid_size.x = (input.rows() + block_size.x - 1) / block_size.x;
 		grid_size.y = (weights.cols() + block_size.y - 1) / block_size.y;
-		MatrixMulKernel<<<grid_size, block_size>>>
+		DenseForwardPass<<<grid_size, block_size>>>
 		(d_input, d_weights, output_arr, d_bias, input.rows(), weights.cols(), weights.rows());
 		cudaDeviceSynchronize();
 		cudaMemcpy(h_output_arr, output_arr, output_size, cudaMemcpyDeviceToHost);
@@ -98,6 +126,8 @@ public:
 	//computes dE/dW, dE/dB for a given outputError = dE/dY. Returns input_error = dE/dX.
 	Eigen::MatrixXf backwardPropagation(Eigen::MatrixXf& outputError, float learningRate)
 	{
+		DenseBackwardPass<<<1, 1>>>();
+		
 		Eigen::MatrixXf inputError = outputError * weights.transpose(); //calculates dE/dx 
 		Eigen::MatrixXf weightsError = input.transpose() * outputError; //calculates dE/dW
 
@@ -184,6 +214,7 @@ public:
 		std::vector<Eigen::MatrixXf> result;
 
 		//forward propagation
+		// this can be parallelized
 		for (int j = 0; j < samples; ++j)
 		{
 			Eigen::MatrixXf output = input.row(j);
