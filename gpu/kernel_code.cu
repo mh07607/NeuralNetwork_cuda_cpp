@@ -66,6 +66,7 @@ __global__ void DenseBackwardPass(
     int w_r,
     int w_c
 )
+
     // Eigen::MatrixXf inputError = outputError * weights.transpose(); //calculates dE/dx 
     // Eigen::MatrixXf weightsError = input.transpose() * outputError; //calculates dE/dW
 
