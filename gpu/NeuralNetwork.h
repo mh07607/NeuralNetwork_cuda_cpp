@@ -21,11 +21,11 @@ void printMatrixSize(const std::string msg, const Eigen::MatrixXf& m)
 	std::cout << msg.c_str() << "[" << m.rows() << "," << m.cols() << "]" << std::endl;
 }
 
-class Layer
+class GPULayer
 {
 public:
-	Layer() :input(), output() {}
-	virtual ~Layer() {}
+	GPULayer() :input(), output() {}
+	virtual ~GPULayer() {}
 
 	virtual Eigen::MatrixXf forwardPropagation(Eigen::MatrixXf& input) = 0;
 	virtual Eigen::MatrixXf backwardPropagation(Eigen::MatrixXf& output, float learningRate) = 0;
@@ -35,10 +35,10 @@ protected:
 	Eigen::MatrixXf output;
 };
 
-class DenseLayer : public Layer
+class GPUDenseLayer : public GPULayer
 {
 public:
-	DenseLayer(int inputSize, int  outputSize) : Layer()
+	GPUDenseLayer(int inputSize, int  outputSize) : Layer()
 	{
 		//Eigen::MatrixXf::Random returns values from [-1,1] we should scale it to [-0.5,0.5]
 		weights = Eigen::MatrixXf::Random(inputSize, outputSize).array() * 0.5f;
@@ -185,21 +185,23 @@ private:
 	Eigen::MatrixXf bias;
 };
 
-class ActivationLayer : public Layer
+class GPUActivationLayer : public GPULayer
 {
 public:
-	ActivationLayer(int pairNum = 1)
-	{
+	ActivationLayer(int output_size, int pairNum = 1)
+	{   
+		// pairNum
+		// 1 represents tanh2 and tanh prime
+		// 2 represents sigmoid and sigmoid prime
+		// 3 represents relu and relu prime
 		this->pairNum = pairNum;
-		// this->activation = activation;
- 		// this->activationPrime = activationPrime;
+		this->output = Eigen::MatrixXf::Random(1, output_size).array();
 	}
 
 	//returns the activated input
 	Eigen::MatrixXf forwardPropagation(Eigen::MatrixXf& input)
 	{
 		this->input = input;
-		this->output = Eigen::MatrixXf::Random(input.rows(), input.cols()).array();
 		// Eigen::MatrixXf yeet = input;
 		// this->output = yeet.unaryExpr(activation);
 		// std::cout << "Real output: " << this->output << std::endl;
@@ -252,42 +254,10 @@ public:
 	}
 
 private:
-	std::function<float(float)> activation;
-	std::function<float(float)> activationPrime;
 	int pairNum;
 };
 
-// class ActivationLayer : public Layer
-// {
-// public:
-// 	ActivationLayer(std::function<float(float)> activation,
-// 		std::function<float(float)> activationPrime)
-// 	{
-// 		this->activation = activation;
-// 		this->activationPrime = activationPrime;
-// 	}
-
-// 	//returns the activated input
-// 	Eigen::MatrixXf forwardPropagation(Eigen::MatrixXf& input)
-// 	{
-// 		this->input = input;
-// 		this->output = input.unaryExpr(activation);
-// 		return this->output;
-// 	}
-
-// 	//Returns inputRrror = dE / dX for a given output_error = dE / dY.
-// 	//learningRate is not used because there is no "learnable" parameters.
-// 	Eigen::MatrixXf backwardPropagation(Eigen::MatrixXf& outputError, float learningRate)
-// 	{ 
-// 		return (input.unaryExpr(activationPrime).array() * outputError.array()).matrix();
-// 	}
-
-// private:
-// 	std::function<float(float)> activation;
-// 	std::function<float(float)> activationPrime;
-// };
-
-class FlattenLayer :public Layer
+class FlattenLayer : public GPULayer
 {
 public:
 	Eigen::MatrixXf forwardPropagation(Eigen::MatrixXf& input)
@@ -304,13 +274,13 @@ public:
 	}
 };
 
-class Network
+class GPUNetwork
 {
 public:
-	Network() {}
-	virtual ~Network() {}
+	GPUNetwork() {}
+	virtual ~GPUNetwork() {}
 
-	void add(Layer* layer)
+	void add(GPULayer* layer)
 	{
 		layers.push_back(layer);
 	}
@@ -332,7 +302,7 @@ public:
 		for (int j = 0; j < samples; ++j)
 		{
 			Eigen::MatrixXf output = input.row(j);
-			for (Layer* layer : layers)
+			for (GPULayer* layer : layers)
 				output = layer->forwardPropagation(output);
 
 			result.push_back(output);
@@ -366,20 +336,18 @@ public:
 				int index = order[j];
 			    Eigen::MatrixXf output = x_train.row(index); 
 
-				for (Layer* layer : layers)				 	
+				for (GPULayer* layer : layers)				 	
 					output = layer->forwardPropagation(output);
 					  
 				// compute loss(for display purpose only)
 				Eigen::MatrixXf y = y_train.row(index);
 				   
-				// std::cout << "done with layers" << std::endl;
 				err += loss(y, output);
-				// std::cout << "loss calculated" << std::endl;
 				//backward propagation 
 				Eigen::MatrixXf error = lossPrime(y, output); 
 				// std::cout << "loss prime calculated" << std::endl;
 
-				for (std::vector<Layer*>::reverse_iterator layer = layers.rbegin(); layer != layers.rend(); ++layer) 
+				for (std::vector<GPULayer*>::reverse_iterator layer = layers.rbegin(); layer != layers.rend(); ++layer) 
 					error = (*layer)->backwardPropagation(error, learningRate); 
 					// std::cout << "layer backwards propagated" << std::endl;
 				 
@@ -390,8 +358,9 @@ public:
 	}
 
 protected:
-	std::vector<Layer*> layers;
+	std::vector<GPULayer*> layers;
 	std::function<float(Eigen::MatrixXf&, Eigen::MatrixXf&)> loss;
 	std::function<Eigen::MatrixXf(Eigen::MatrixXf&, Eigen::MatrixXf&)> lossPrime;
+	int loss_pair;
 };
 #endif

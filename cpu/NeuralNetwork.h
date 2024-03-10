@@ -12,11 +12,11 @@ void printMatrixSize(const std::string msg, const Eigen::MatrixXf& m)
 	std::cout << msg.c_str() << "[" << m.rows() << "," << m.cols() << "]" << std::endl;
 }
 
-class Layer
+class GPULayer
 {
 public:
-	Layer() :input(), output() {}
-	virtual ~Layer() {}
+	GPULayer() :input(), output() {}
+	virtual ~GPULayer() {}
 
 	virtual Eigen::MatrixXf forwardPropagation(Eigen::MatrixXf& input) = 0;
 	virtual Eigen::MatrixXf backwardPropagation(Eigen::MatrixXf& output, float learningRate) = 0;
@@ -26,7 +26,7 @@ protected:
 	Eigen::MatrixXf output;
 };
 
-class DenseLayer : public Layer
+class DenseLayer : public GPULayer
 {
 public:
 	DenseLayer(int inputSize, int  outputSize)
@@ -61,7 +61,7 @@ private:
 	Eigen::MatrixXf bias;
 };
 
-class ActivationLayer : public Layer
+class ActivationLayer : public GPULayer
 {
 public:
 	ActivationLayer(std::function<float(float)> activation,
@@ -91,7 +91,7 @@ private:
 	std::function<float(float)> activationPrime;
 };
 
-class FlattenLayer :public Layer
+class FlattenLayer :public GPULayer
 {
 public:
 	Eigen::MatrixXf forwardPropagation(Eigen::MatrixXf& input)
@@ -108,13 +108,13 @@ public:
 	}
 };
 
-class Network
+class GPUNetwork
 {
 public:
-	Network() {}
-	virtual ~Network() {}
+	GPUNetwork() {}
+	virtual ~GPUNetwork() {}
 
-	void add(Layer* layer)
+	void add(GPULayer* layer)
 	{
 		layers.push_back(layer);
 	}
@@ -135,7 +135,7 @@ public:
 		for (int j = 0; j < samples; ++j)
 		{
 			Eigen::MatrixXf output = input.row(j);
-			for (Layer* layer : layers)
+			for (GPULayer* layer : layers)
 				output = layer->forwardPropagation(output);
 
 			result.push_back(output);
@@ -169,7 +169,7 @@ public:
 				int index = order[j];
 			    Eigen::MatrixXf output = x_train.row(index); 
 
-				for (Layer* layer : layers)				 	
+				for (GPULayer* layer : layers)				 	
 					output = layer->forwardPropagation(output);
 					  
 				// compute loss(for display purpose only)
@@ -180,7 +180,7 @@ public:
 				//backward propagation 
 				Eigen::MatrixXf error = lossPrime(y, output); 
 
-				for (std::vector<Layer*>::reverse_iterator layer = layers.rbegin(); layer != layers.rend(); ++layer) 
+				for (std::vector<GPULayer*>::reverse_iterator layer = layers.rbegin(); layer != layers.rend(); ++layer) 
 					error = (*layer)->backwardPropagation(error, learningRate); 
 				 
 			}
@@ -190,7 +190,7 @@ public:
 	}
 
 protected:
-	std::vector<Layer*> layers;
+	std::vector<GPULayer*> layers;
 	std::function<float(Eigen::MatrixXf&, Eigen::MatrixXf&)> loss;
 	std::function<Eigen::MatrixXf(Eigen::MatrixXf&, Eigen::MatrixXf&)> lossPrime;
 };

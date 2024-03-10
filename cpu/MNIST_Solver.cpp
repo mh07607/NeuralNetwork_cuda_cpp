@@ -138,7 +138,7 @@ int main(int argc, char * argv[])
         data_path + "/t10k-images-idx3-ubyte",
         data_path + "/t10k-labels-idx1-ubyte");
 
-    Network nn;
+    GPUNetwork nn;
     nn.add(new DenseLayer(28*28, 100));
     nn.add(new ActivationLayer(tanh2, tanh_prime));
     nn.add(new DenseLayer(100, 50));

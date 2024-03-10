@@ -14,7 +14,7 @@ int main()
 	for (int i = 0; i < x_train.size(); i++)
   		std::cout << *(x_train.data() + i) << "  ";
 
-	Network nn;
+	GPUNetwork nn;
 	nn.add(new DenseLayer(2, 3));
 	nn.add(new ActivationLayer(tanh2, tanh_prime));
 	nn.add(new DenseLayer(3, 1));

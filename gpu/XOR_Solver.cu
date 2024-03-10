@@ -22,12 +22,12 @@ int main()
 	for (int i = 0; i < x_train.size(); i++)
   		std::cout << *(x_train.data() + i) << "  ";
 
-	Network nn;
-	nn.add(new DenseLayer(2, 3));
+	GPUNetwork nn;
+	nn.add(new GPUDenseLayer(2, 3));
 	// pairNum is a new parameter, 1 represents tanh2 and tanh_prime
-	nn.add(new ActivationLayer(1));
-	nn.add(new DenseLayer(3, 1));
-	nn.add(new ActivationLayer(1));
+	nn.add(new GPUActivationLayer(3, 1));
+	nn.add(new GPUDenseLayer(3, 1));
+	nn.add(new GPUActivationLayer(1, 1));
 
 	nn.use(mse, mse_prime);
 	

@@ -138,7 +138,7 @@ int main(int argc, char * argv[])
         data_path + "/t10k-images-idx3-ubyte",
         data_path + "/t10k-labels-idx1-ubyte");
 
-    Network nn;
+    GPUNetwork nn;
     nn.add(new DenseLayer(28*28, 100));
     // pairNum is a new parameter. Here 1 means tanh2 and tanh prime
     nn.add(new ActivationLayer(1));
