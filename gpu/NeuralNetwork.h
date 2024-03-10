@@ -215,7 +215,8 @@ public:
 		cudaDeviceSynchronize();
 		cudaMemcpy(this->output.data(), d_input, input.rows() * input.cols() * sizeof(float), cudaMemcpyDeviceToHost);
 		cudaFree(d_input);
-		std::cout << "My output: " << this->output << std::endl;
+
+		// std::cout << "My output: " << this->output << std::endl;
 		return this->output;
 	}
 
@@ -224,8 +225,8 @@ public:
 	Eigen::MatrixXf backwardPropagation(Eigen::MatrixXf& outputError, float learningRate)
 	{ 
 		// std::cout << "Actual Output: "<< (input.unaryExpr(activationPrime).array() * outputError.array()).matrix() << std::endl;
-		printMatrixSize("outputError: ", outputError);
-		printMatrixSize("input: ", input);
+		// printMatrixSize("outputError: ", outputError);
+		// printMatrixSize("input: ", input);
 		dim3 block_size(32, 32, 1);
 		dim3 grid_size;
 		grid_size.x = (outputError.rows() + block_size.x - 1) / block_size.x;

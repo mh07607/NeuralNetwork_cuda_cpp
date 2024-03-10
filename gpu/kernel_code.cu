@@ -1,4 +1,5 @@
 #include "kernel_code.h"
+#include "ActivationAndLossFunctions.h"
 // #include <math_functions.h>
 
 
