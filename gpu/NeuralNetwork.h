@@ -31,12 +31,12 @@ protected:
 class DenseLayer : public Layer
 {
 public:
-	DenseLayer(int inputSize, int  outputSize) : output(Eigen::MatrixXf::Random(1, outputSize).array())
+	DenseLayer(int inputSize, int  outputSize) : Layer()
 	{
 		//Eigen::MatrixXf::Random returns values from [-1,1] we should scale it to [-0.5,0.5]
 		weights = Eigen::MatrixXf::Random(inputSize, outputSize).array() * 0.5f;
 		bias = Eigen::MatrixXf::Random(1, outputSize).array() * 0.5f;
-
+		output = Eigen::MatrixXf::Random(1, outputSize).array();
 	}
 
 	Eigen::MatrixXf forwardPropagation(Eigen::MatrixXf& input)
