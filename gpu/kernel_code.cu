@@ -65,7 +65,15 @@ __global__ void DenseBackwardPass(
     int i_c,
     int w_r,
     int w_c
-){
+)
+    // Eigen::MatrixXf inputError = outputError * weights.transpose(); //calculates dE/dx 
+    // Eigen::MatrixXf weightsError = input.transpose() * outputError; //calculates dE/dW
+
+    // //update parameters
+    // weights -= weightsError * learningRate;
+    // bias -= outputError * learningRate; 
+
+{
     dim3 block_size(32, 32, 1);
     dim3 grid_size;
 
@@ -97,12 +105,7 @@ __global__ void DenseBackwardPass(
     grid_size.y = (o_c + block_size.y - 1) / block_size.y;
     MatrixSubtractionKernel<<<grid_size, block_size>>>(d_bias, d_outputError, lr, o_r, o_c);
 
-	Eigen::MatrixXf inputError = outputError * weights.transpose(); //calculates dE/dx 
-    Eigen::MatrixXf weightsError = input.transpose() * outputError; //calculates dE/dW
-
-    //update parameters
-    weights -= weightsError * learningRate;
-    bias -= outputError * learningRate; 
+	
 
     free(d_weights_T);
     free(d_input_T);
