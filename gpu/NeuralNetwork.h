@@ -66,6 +66,7 @@ public:
 		(d_input, d_weights, output_arr, d_bias, input.rows(), weights.cols(), weights.rows());
 		cudaDeviceSynchronize();
 
+		cudaError_t cudaError = cudaGetLastError();
 		if(cudaError != cudaSuccess) {
 			printf("CUDA error after kernel launch: %s\n", cudaGetErrorString(cudaError));
 			//return 1; // return an error code
