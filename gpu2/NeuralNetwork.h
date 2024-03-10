@@ -23,7 +23,7 @@ __global__ void DenseForwardPass(float* d_M, float* d_N, float* d_P, float * d_B
 	}
 }
 
-__global void test(){
+__global__ void test(){
 	int x = 5;
 }
 
@@ -127,7 +127,7 @@ public:
 	Eigen::MatrixXf backwardPropagation(Eigen::MatrixXf& outputError, float learningRate)
 	{
 		DenseBackwardPass<<<1, 1>>>();
-		
+
 		Eigen::MatrixXf inputError = outputError * weights.transpose(); //calculates dE/dx 
 		Eigen::MatrixXf weightsError = input.transpose() * outputError; //calculates dE/dW
 
