@@ -139,13 +139,13 @@ int main(int argc, char * argv[])
         data_path + "/t10k-labels-idx1-ubyte");
 
     GPUNetwork nn;
-    nn.add(new DenseLayer(28*28, 100));
+    nn.add(new GPUDenseLayer(28*28, 100));
     // pairNum is a new parameter. Here 1 means tanh2 and tanh prime
-    nn.add(new ActivationLayer(1));
-    nn.add(new DenseLayer(100, 50));
-    nn.add(new ActivationLayer(1));
-    nn.add(new DenseLayer(50, 10));
-    nn.add(new ActivationLayer(1));
+    nn.add(new GPUActivationLayer(100, 1));
+    nn.add(new GPUDenseLayer(100, 50));
+    nn.add(new GPUActivationLayer(50, 1));
+    nn.add(new GPUDenseLayer(50, 10));
+    nn.add(new GPUActivationLayer(10, 1));
 
     nn.use(mse, mse_prime);
 
@@ -153,7 +153,7 @@ int main(int argc, char * argv[])
     printMatrixSize("x_train", x_train);
     printMatrixSize("y_train", y_train);
 
-    nn.fit(x_train.block<1000,784>(0,0), y_train.block<1000,10>(0,0), epoch, 0.1f);
+    nn.fit(x_train.block<1000,784>(0,0), y_train.block<1000,10>(0,0), epoch, 0.1f, "mnist.txt");
 
 
     //test

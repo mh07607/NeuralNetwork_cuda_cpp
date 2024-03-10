@@ -92,6 +92,8 @@ public:
 	//computes dE/dW, dE/dB for a given outputError = dE/dY. Returns input_error = dE/dX.
 	Eigen::MatrixXf backwardPropagation(Eigen::MatrixXf& outputError, float learningRate)
 	{
+		//kernel keeps saying invalid argument. I have no idea why.
+
 		// float * d_outputError;
 		// float * d_input;
 		// float * d_bias;
@@ -203,23 +205,21 @@ public:
 	Eigen::MatrixXf forwardPropagation(Eigen::MatrixXf& input)
 	{
 		this->input = input;
-		// Eigen::MatrixXf yeet = input;
-		// this->output = yeet.unaryExpr(activation);
-		// std::cout << "Real output: " << this->output << std::endl;
 
 		dim3 block_size(32, 32, 1);
 		dim3 grid_size;
 		grid_size.x = (input.rows() + block_size.x - 1) / block_size.x;
 		grid_size.y = (input.cols() + block_size.y - 1) / block_size.y;
+
 		float * d_input;
 		cudaMalloc((void **) &d_input, input.rows() * input.cols() * sizeof(float));
 		cudaMemcpy(d_input, input.data(), input.rows() * input.cols() * sizeof(float), cudaMemcpyHostToDevice);	
+
 		ActivationForwardPass<<<grid_size, block_size>>>(pairNum, d_input, input.rows(), input.cols());
 		cudaDeviceSynchronize();
+
 		cudaMemcpy(this->output.data(), d_input, input.rows() * input.cols() * sizeof(float), cudaMemcpyDeviceToHost);
 		cudaFree(d_input);
-
-		// std::cout << "My output: " << this->output << std::endl;
 		return this->output;
 	}
 
@@ -250,7 +250,11 @@ public:
 		element_wise_mul<<<grid_size, block_size>>>(d_outputError, d_input, input.rows(), input.cols());
 		cudaMemcpy(output, d_outputError, outputError.rows() * outputError.cols() * sizeof(float), cudaMemcpyDeviceToHost);
 		Eigen::MatrixXf output_matrix = Eigen::MatrixXf::Map(output, outputError.rows(), outputError.cols());
-		// std::cout << "My output: " << output_matrix << std::endl;
+		
+		free(output);
+		cudaFree(d_outputError);
+		cudaFree(d_input);
+
 		return output_matrix;
 	}
 
@@ -298,8 +302,7 @@ public:
 
 		std::vector<Eigen::MatrixXf> result;
 
-		//forward propagation
-		// this can be parallelized
+		// forward prediction
 		for (int j = 0; j < samples; ++j)
 		{
 			Eigen::MatrixXf output = input.row(j);
@@ -313,8 +316,10 @@ public:
 	}
 
 	//train the network
-	virtual void fit(Eigen::MatrixXf x_train, Eigen::MatrixXf y_train, int epochs, float learningRate)
+	virtual void fit(Eigen::MatrixXf x_train, Eigen::MatrixXf y_train, int epochs, float learningRate, std::string fileName)
 	{ 
+		FILE *file = fopen(fileName, "w");
+
 		int samples = x_train.rows();
 		std::cout << "Samples: " << samples << std::endl;
 		printMatrixSize("x_train", x_train);
@@ -355,7 +360,11 @@ public:
 			}
 			err /= (float)samples;
 			std::cout << "Epoch " << (i + 1) << "/" << epochs << " error = " << err << std::endl;
+			fprintf(file, "%d %f\n", epochs, err);
+
 		}
+
+		fclose(file);
 	}
 
 protected:
