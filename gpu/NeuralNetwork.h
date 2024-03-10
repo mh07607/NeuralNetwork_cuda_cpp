@@ -199,10 +199,10 @@ public:
 	//returns the activated input
 	Eigen::MatrixXf forwardPropagation(Eigen::MatrixXf& input)
 	{
-		this->input = input;
-		Eigen::MatrixXf yeet = input;
-		this->output = yeet.unaryExpr(activation);
-		std::cout << "Real output: " << this->output << std::endl;
+		// this->input = input;
+		// Eigen::MatrixXf yeet = input;
+		// this->output = yeet.unaryExpr(activation);
+		// std::cout << "Real output: " << this->output << std::endl;
 
 		dim3 block_size(32, 32, 1);
 		dim3 grid_size;
@@ -228,7 +228,8 @@ public:
 	Eigen::MatrixXf backwardPropagation(Eigen::MatrixXf& outputError, float learningRate)
 	{ 
 		// std::cout << "Actual Output: "<< (input.unaryExpr(activationPrime).array() * outputError.array()).matrix() << std::endl;
-		std::cout << outputError.size() << input.size() << std::endl;
+		printMatrixSize("outputError: ", outputError);
+		printMatrixSize("input: ", input);
 		dim3 block_size(32, 32, 1);
 		dim3 grid_size;
 		grid_size.x = (outputError.rows() + block_size.x - 1) / block_size.x;
