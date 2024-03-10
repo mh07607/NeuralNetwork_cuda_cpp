@@ -56,6 +56,8 @@ __global__ void DenseBackwardPass(
     float * d_bias,
     float * d_inputError,
     float * d_weightsError,
+    float * d_weights_T,
+    float * d_input_T,
     int lr,
     int o_r,
     int o_c,
@@ -64,8 +66,6 @@ __global__ void DenseBackwardPass(
     int w_r,
     int w_c
 ){
-    // float * d_weights_T = (float *) malloc (w_r * w_c * sizeof(float));
-    // float * d_input_T = (float *) malloc (i_r * i_c * sizeof(float));
 
     dim3 block_size(32, 32, 1);
     dim3 grid_size;

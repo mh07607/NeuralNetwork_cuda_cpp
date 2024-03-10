@@ -84,6 +84,8 @@ public:
 		float * d_weights;
 		float * d_inputError;
 		float * d_weightsError;
+		float * d_weights_T;
+		float * d_input_T;
 
 		int outputError_size = outputError.rows() * outputError.cols() * sizeof(float);
 		int input_size = input.rows() * input.cols() * sizeof(float);
@@ -101,6 +103,8 @@ public:
 		cudaMalloc((void **) &d_inputError, inputError_size);
 		cudaMalloc((void **) &d_weightsError, weightsError_size);
 		cudaMalloc((void **) &d_bias, bias_size);
+		cudaMalloc((void **) &d_input_T, input_size);
+		cudaMalloc((void **) &d_weights_T, weights_size);
 
 		cudaMemcpy(d_input, input.data(), input_size, cudaMemcpyHostToDevice);
 		cudaMemcpy(d_weights, weights.data(), weights_size, cudaMemcpyHostToDevice);
@@ -114,6 +118,8 @@ public:
 		 d_inputError,
 		 d_weightsError,
 		 learningRate,
+		 d_weights_T,
+		 d_input_T,
 		 outputError.rows(),
 		 outputError.cols(),
 		 input.rows(),
