@@ -110,6 +110,12 @@ public:
 		cudaMemcpy(d_weights, weights.data(), weights_size, cudaMemcpyHostToDevice);
 		cudaMemcpy(d_outputError, outputError.data(), outputError_size, cudaMemcpyHostToDevice);
 
+		cudaError_t cudaError = cudaGetLastError();
+		if(cudaError != cudaSuccess) {
+			printf("CUDA error after kernel launch: %s\n", cudaGetErrorString(cudaError));
+			//return 1; // return an error code
+		}
+
 		DenseBackwardPass<<<1, 1>>>
 		(d_outputError,
 	     d_input,
@@ -130,11 +136,7 @@ public:
 
 		
 		cudaDeviceSynchronize();
-		cudaError_t cudaError = cudaGetLastError();
-		if(cudaError != cudaSuccess) {
-			printf("CUDA error after kernel launch: %s\n", cudaGetErrorString(cudaError));
-			//return 1; // return an error code
-		}
+		
 
 		cudaMemcpy(weights.data(), d_weights, weights_size, cudaMemcpyDeviceToHost);
 		cudaMemcpy(bias.data(), d_bias, weights_size, cudaMemcpyDeviceToHost);
