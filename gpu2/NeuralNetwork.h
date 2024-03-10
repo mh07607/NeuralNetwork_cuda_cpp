@@ -46,14 +46,14 @@ __global__ void MatrixMulKernel(float* d_M, float* d_N, float* d_P, float * d_B,
 	}
 }
 
-__global__ void MatrixSubtractionKernel(float* d_M, float* d_N, float* d_P){
-	int Row = blockIdx.y * blockDim.y + threadIdx.y;
-	int Col = blockIdx.x * blockDim.x + threadIdx.x;
+// __global__ void MatrixSubtractionKernel(float* d_M, float* d_N, float* d_P){
+// 	int Row = blockIdx.y * blockDim.y + threadIdx.y;
+// 	int Col = blockIdx.x * blockDim.x + threadIdx.x;
 
-	if((Row < M) && (Col < N)){
-		d_P[Row*N+Col] = ;
-	}
-}
+// 	if((Row < M) && (Col < N)){
+// 		d_P[Row*N+Col] = ;
+// 	}
+// }
 
 void printMatrixSize(const std::string msg, const Eigen::MatrixXf& m)
 {
