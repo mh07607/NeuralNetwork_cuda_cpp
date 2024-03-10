@@ -25,7 +25,7 @@ __device__ float tanh_prime(float x)
 
 __device__ float relu(float x)
 {
-	return std::max(x, 0.0f);
+	return max(x, 0.0f);
 }
 __device__ float relu_prime(float x)
 {
