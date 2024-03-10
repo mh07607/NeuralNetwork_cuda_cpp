@@ -118,7 +118,7 @@ public:
 		cudaMemcpy(d_outputError, outputError.data(), outputError_size, cudaMemcpyHostToDevice);
 
 		
-		DenseBackwardPass<<<1, 1>>>
+		DenseBackwardPass<<<10, 1024>>>
 		(d_outputError,
 	     d_input,
 		 d_weights,
