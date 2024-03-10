@@ -202,7 +202,7 @@ public:
 		dim3 block_size(32, 32, 1);
 		dim3 grid_size;
 		grid_size.x = (input.rows() + block_size.x - 1) / block_size.x;
-		grid_size.y = (weights.cols() + block_size.y - 1) / block_size.y;
+		grid_size.y = (input.cols() + block_size.y - 1) / block_size.y;
 		float * d_input;
 		cudaMalloc((void **) &d_input, input.rows() * input.cols() * sizeof(float));
 		cudaMemcpy(d_input, input.data(), input.rows() * input.cols() * sizeof(float), cudaMemcpyHostToDevice);
@@ -229,6 +229,7 @@ public:
 private:
 	std::function<float(float)> activation;
 	std::function<float(float)> activationPrime;
+	int yeet;
 };
 
 // class ActivationLayer : public Layer
