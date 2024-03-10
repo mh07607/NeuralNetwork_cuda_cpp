@@ -39,7 +39,7 @@ __global__ void MatrixMulKernel(float* d_M, float* d_N, float* d_P, int M, int N
 	}
 }
 
-__global__ void MatrixSubtractionKernel(float* d_M, float* d_N, int lr, int M, int N){
+__global__ void MatrixSubtractionKernel(float* d_M, float* d_N, float lr, int M, int N){
 	int Row = blockIdx.y * blockDim.y + threadIdx.y;
 	int Col = blockIdx.x * blockDim.x + threadIdx.x;
 
