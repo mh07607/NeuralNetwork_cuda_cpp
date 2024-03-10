@@ -200,6 +200,7 @@ public:
 	Eigen::MatrixXf forwardPropagation(Eigen::MatrixXf& input)
 	{
 		this->input = input;
+		this->output = Eigen::MatrixXf::Random(input.rows(), input.cols()).array();
 		// Eigen::MatrixXf yeet = input;
 		// this->output = yeet.unaryExpr(activation);
 		// std::cout << "Real output: " << this->output << std::endl;
