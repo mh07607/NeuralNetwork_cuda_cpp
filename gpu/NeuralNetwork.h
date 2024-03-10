@@ -66,7 +66,7 @@ public:
 		(d_input, d_weights, output_arr, d_bias, input.rows(), weights.cols(), weights.rows());
 		cudaDeviceSynchronize();
 		cudaMemcpy(h_output_arr, output_arr, output_size, cudaMemcpyDeviceToHost);
-		this->output = Eigen::MatrixXf::Map(h_output_arr, input.rows(), weights.cols());
+		// this->output = Eigen::MatrixXf::Map(h_output_arr, input.rows(), weights.cols());
 		// std::cout << "My kernel output: " << this->output << std::endl;
 
 		cudaFree(output_arr);
