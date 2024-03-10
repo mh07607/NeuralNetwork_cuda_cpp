@@ -200,7 +200,7 @@ public:
 	Eigen::MatrixXf forwardPropagation(Eigen::MatrixXf& input)
 	{
 		this->input = input;
-		this->output = input.unaryExpr(activation)
+		this->output = input.unaryExpr(activation);
 		std::cout << "Real output: " << this->output << std::endl;
 		dim3 block_size(32, 32, 1);
 		dim3 grid_size;
