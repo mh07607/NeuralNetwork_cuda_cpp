@@ -3,38 +3,11 @@
 #pragma once
 
 #include <iostream>
-#include <stdio.h>
-#include <stdlib.h>
 #include <vector>
 #include <Eigen/Dense>
 #include <cuda_runtime.h>
 #include <numeric> //std::iota
-
-__global__ void MatrixMulKernel(float* d_M, float* d_N, float* d_P, float * d_B, int M, int N, int P) {
-	// Calculate the row index of the d_Pelement and d_M
-	int Row = blockIdx.y*blockDim.y+threadIdx.y;
-	// Calculate the column index of d_P and d_N
-	int Col = blockIdx.x*blockDim.x+threadIdx.x;
-	if ((Row < M) && (Col < N)) {
-		float Pvalue = 0;
-		// each thread computes one element of the block sub-matrix
-		for (int k = 0; k < P; ++k) {
-			Pvalue += d_M[Row*M+k]*d_N[k*M+Col];
-		}
-		d_P[Row*M+Col] = Pvalue + d_B[Row*M+Col];
-	}
-}
-
-void MatrixMul(float * d_M, float * d_N, float * d_P, float * d_b, int M, int N){
-	for(int j = 0; j < N; j++){
-		for(int i = 0; i < M; i++){
-			d_P[i*M + j] = 0;
-			// for(int k = 0; k < M; k++){
-			// 	// d_P[i*m += 
-			// }
-		}
-	}
-}
+#include "kernel_code.h"
 
 void printMatrixSize(const std::string msg, const Eigen::MatrixXf& m)
 {
@@ -50,11 +23,10 @@ public:
 	virtual Eigen::MatrixXf forwardPropagation(Eigen::MatrixXf& input) = 0;
 	virtual Eigen::MatrixXf backwardPropagation(Eigen::MatrixXf& output, float learningRate) = 0;
 
-public:
+protected:
 	Eigen::MatrixXf input;
 	Eigen::MatrixXf output;
 };
-
 
 class DenseLayer : public Layer
 {
@@ -68,25 +40,48 @@ public:
 
 	Eigen::MatrixXf forwardPropagation(Eigen::MatrixXf& input)
 	{
-		this->input = input;  
-		this->output = input * weights + bias;  
+		this->input = input;
+		float * output_arr;
+		int output_size = input.rows() * weights.cols() * sizeof(float);
+		// std::cout << "Output size: " << input.rows() << weights.cols() << weights.rows() << output_size << std::endl;
+		float * h_output_arr = (float *)malloc(output_size);
+		float * d_input;
+		float * d_weights;
+		float * d_bias;
+
+		cudaMalloc((void **)&output_arr, output_size);
+		cudaMalloc((void **)&d_input, input.rows() * input.cols() * sizeof(float));
+		cudaMalloc((void **)&d_weights, weights.rows() * weights.cols() * sizeof(float));
+		cudaMalloc((void **)&d_bias, bias.rows() * bias.cols() * sizeof(float));
+
+		cudaMemcpy(d_input, input.data(), input.rows() * input.cols() * sizeof(float), cudaMemcpyHostToDevice);
+		cudaMemcpy(d_weights, weights.data(), weights.rows() * weights.cols() * sizeof(float), cudaMemcpyHostToDevice);
+		cudaMemcpy(d_bias, bias.data(), bias.rows() * bias.cols() * sizeof(float), cudaMemcpyHostToDevice);
+
+		dim3 block_size(32, 32, 1);
+		dim3 grid_size;
+		grid_size.x = (input.rows() + block_size.x - 1) / block_size.x;
+		grid_size.y = (weights.cols() + block_size.y - 1) / block_size.y;
+		DenseForwardPass<<<grid_size, block_size>>>
+		(d_input, d_weights, output_arr, d_bias, input.rows(), weights.cols(), weights.rows());
+		cudaDeviceSynchronize();
+		cudaMemcpy(h_output_arr, output_arr, output_size, cudaMemcpyDeviceToHost);
+		this->output = Eigen::MatrixXf::Map(h_output_arr, input.rows(), weights.cols());
+		// std::cout << "My kernel output: " << this->output << std::endl;
+
+		cudaFree(output_arr);
+		cudaFree(d_input);
+		cudaFree(d_weights);
+		cudaFree(d_bias);
+
 		return this->output;
-		// this->input = input;
-		// float * output_arr;
-		// int output_size = input.rows() * weights.cols() * sizeof(float);
-		// float * h_output_arr = (float *)malloc(output_size);
-		// cudaMalloc((void **)&output_arr, output_size);
-		// MatrixMulKernel<<<input.rows(), input.cols()>>>
-		// (input.data(), weights.data(), output_arr, bias.data(), input.rows(), weights.cols(), weights.rows());
-		// cudaDeviceSynchronize();
-		// cudaMemcpy(h_output_arr, output_arr, output_size, cudaMemcpyDeviceToHost);
-		// this->output = Eigen::MatrixXf::Map(h_output_arr, input.rows(), input.cols());
-		// return this->output;
 	}
 
 	//computes dE/dW, dE/dB for a given outputError = dE/dY. Returns input_error = dE/dX.
 	Eigen::MatrixXf backwardPropagation(Eigen::MatrixXf& outputError, float learningRate)
 	{
+		DenseBackwardPass<<<1, 1>>>();
+
 		Eigen::MatrixXf inputError = outputError * weights.transpose(); //calculates dE/dx 
 		Eigen::MatrixXf weightsError = input.transpose() * outputError; //calculates dE/dW
 
@@ -97,7 +92,7 @@ public:
 		return inputError;
 	}
 
-public:
+private:
 	Eigen::MatrixXf weights;
 	Eigen::MatrixXf bias;
 };
@@ -127,7 +122,7 @@ public:
 		return (input.unaryExpr(activationPrime).array() * outputError.array()).matrix();
 	}
 
-public:
+private:
 	std::function<float(float)> activation;
 	std::function<float(float)> activationPrime;
 };
@@ -149,21 +144,15 @@ public:
 	}
 };
 
-
-
-class GPUNetwork
+class Network
 {
 public:
-	GPUNetwork() {}
-	virtual ~GPUNetwork() {}
+	Network() {}
+	virtual ~Network() {}
 
 	void add(Layer* layer)
 	{
 		layers.push_back(layer);
-		// Layer * device_layer;
-		// cudaMalloc((void**)&device_layer, sizeof(Layer));
-		// cudaMemcpy(device_layer, layer, sizeof(Layer), cudaMemcpyHostToDevice);
-		// device_layers.push_back(device_layer);
 	}
 
 	void use(std::function<float(Eigen::MatrixXf&, Eigen::MatrixXf&)> lossF, std::function<Eigen::MatrixXf(Eigen::MatrixXf&, Eigen::MatrixXf&)> lossDer)
@@ -179,6 +168,7 @@ public:
 		std::vector<Eigen::MatrixXf> result;
 
 		//forward propagation
+		// this can be parallelized
 		for (int j = 0; j < samples; ++j)
 		{
 			Eigen::MatrixXf output = input.row(j);
@@ -214,21 +204,24 @@ public:
 			for (int j = 0; j < samples; ++j)
 			{
 				int index = order[j];
-			    Eigen::MatrixXf output = x_train.row(index);
-				
+			    Eigen::MatrixXf output = x_train.row(index); 
+
 				for (Layer* layer : layers)				 	
-				 	output = layer->forwardPropagation(output);
-				  
+					output = layer->forwardPropagation(output);
+					  
 				// compute loss(for display purpose only)
 				Eigen::MatrixXf y = y_train.row(index);
-				
+				   
+				// std::cout << "done with layers" << std::endl;
 				err += loss(y, output);
-				
+				// std::cout << "loss calculated" << std::endl;
 				//backward propagation 
 				Eigen::MatrixXf error = lossPrime(y, output); 
+				// std::cout << "loss prime calculated" << std::endl;
 
 				for (std::vector<Layer*>::reverse_iterator layer = layers.rbegin(); layer != layers.rend(); ++layer) 
 					error = (*layer)->backwardPropagation(error, learningRate); 
+					// std::cout << "layer backwards propagated" << std::endl;
 				 
 			}
 			err /= (float)samples;
@@ -238,8 +231,6 @@ public:
 
 protected:
 	std::vector<Layer*> layers;
-	// vector to store layers in device
-	std::vector<Layer*> device_layers;
 	std::function<float(Eigen::MatrixXf&, Eigen::MatrixXf&)> loss;
 	std::function<Eigen::MatrixXf(Eigen::MatrixXf&, Eigen::MatrixXf&)> lossPrime;
 };
