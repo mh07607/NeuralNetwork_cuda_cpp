@@ -209,7 +209,7 @@ public:
 		cudaMemcpy(d_input, input.data(), input.rows() * input.cols() * sizeof(float), cudaMemcpyHostToDevice);
 		switch(this->yeet){
 			case 1:			
-				tanh2<<<grid_size, block_size>>>(d_input, input.rows(), input.cols());
+				tanh2_gpu<<<grid_size, block_size>>>(d_input, input.rows(), input.cols());
 				break;
 		}
 		cudaDeviceSynchronize();

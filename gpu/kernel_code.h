@@ -24,6 +24,6 @@ __global__ void DenseBackwardPass(
  int w_r, 
  int w_c
 );
-__global__ void tanh2(float * arr, int M, int N);
+__global__ void tanh2_gpu(float * arr, int M, int N);
 
 #endif 

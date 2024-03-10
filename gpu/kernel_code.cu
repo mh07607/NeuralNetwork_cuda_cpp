@@ -50,7 +50,7 @@ __global__ void MatrixSubtractionKernel(float* d_M, float* d_N, float lr, int M,
 	}
 }
 
-__global__ void tanh2(float * arr, int M, int N){
+__global__ void tanh2_gpu(float * arr, int M, int N){
     int Row = blockIdx.y * blockDim.y + threadIdx.y;
 	int Col = blockIdx.x * blockDim.x + threadIdx.x;
 
