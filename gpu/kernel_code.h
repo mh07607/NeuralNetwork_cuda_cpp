@@ -24,9 +24,9 @@ __global__ void DenseBackwardPass(
  int w_r, 
  int w_c
 );
-__global__ void tanh2_gpu(float * arr, int M, int N);
+__global__ void ActivationForwardPass(int pairNum, float * arr, int M, int N);
 
-__global__ void tanh2Prime_gpu(float * arr, int M, int N);
+__global__ void ActivationBackPass(int pairNum, float * arr, int M, int N);
 
 __global__ void element_wise_mul(float * d_M, float * d_N, int M, int N);
 

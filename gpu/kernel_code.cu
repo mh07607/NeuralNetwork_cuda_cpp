@@ -50,21 +50,41 @@ __global__ void MatrixSubtractionKernel(float* d_M, float* d_N, float lr, int M,
 	}
 }
 
-__global__ void tanh2_gpu(float * arr, int M, int N){
+__global__ void ActivationForwardPass(int pairNum, float * arr, int M, int N){
     int Row = blockIdx.y * blockDim.y + threadIdx.y;
 	int Col = blockIdx.x * blockDim.x + threadIdx.x;
 
     if((Row < M) && (Col < N)){
-        arr[Row * N + Col] = tanh(arr[Row * N + Col]);
+        switch(pairNum){
+            case 1:
+                arr[Row * N + Col] = tanh2(arr[Row * N + Col]);
+                break;
+            case 2:
+                arr[Row * N + Col] = sigmoid(arr[Row * N + Col]);
+                break;
+            case 3:
+                arr[Row * N + Col] = relu(arr[Row * N + Col]);
+                break;
+        }
     }
 }
 
-__global__ void tanh2Prime_gpu(float * arr, int M, int N){
+__global__ void ActivationBackPass(int pairNum, float * arr, int M, int N){
     int Row = blockIdx.y * blockDim.y + threadIdx.y;
 	int Col = blockIdx.x * blockDim.x + threadIdx.x;
 
     if((Row < M) && (Col < N)){
-        arr[Row * N + Col] = 1.0f - powf(tanh(arr[Row * N + Col]), 2.0f);
+        switch(pairNum){
+            case 1:
+                arr[Row * N + Col] = tanh_prime(arr[Row * N + Col]);
+                break;
+            case 2:
+                arr[Row * N + Col] = sigmoid_prime(arr[Row * N + Col]);
+                break;
+            case 3:
+                arr[Row * N + Col] = relu_prime(arr[Row * N + Col]);
+                break;
+        }
     }
 }
 

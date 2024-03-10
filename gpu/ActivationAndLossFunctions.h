@@ -7,36 +7,36 @@
 
 
 //activation functions
-float sigmoid(float x)
+__device__ float sigmoid(float x)
 {
 	return 1.0f / 1.0f + exp(-x);
 }
 
-float sigmoid_prime(float x)
+__device__ float sigmoid_prime(float x)
 {
 	float s = sigmoid(x);
 	return s * (1 - s);
 }
-float tanh2(float x)
+__device__ float tanh2(float x)
 {
 	return tanh(x);
 }
 
-float tanh_prime(float x)
+__device__ float tanh_prime(float x)
 {
 	return 1.0f - powf(tanh(x), 2.0f);
 }
 
-float relu(float x)
+__device__ float relu(float x)
 {
 	return std::max(x, 0.0f);
 }
-float relu_prime(float x)
+__device__ float relu_prime(float x)
 {
 	return (float)((int)(x >= 0));
 }
 
-float one_minus(float x)
+__device__ float one_minus(float x)
 {
 	return 1 - x;
 }

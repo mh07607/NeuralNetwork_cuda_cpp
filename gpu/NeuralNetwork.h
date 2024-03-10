@@ -188,12 +188,11 @@ private:
 class ActivationLayer : public Layer
 {
 public:
-	ActivationLayer(std::function<float(float)> activation,
- 		std::function<float(float)> activationPrime)
+	ActivationLayer(int pairNum = 1)
 	{
-		this->yeet = 1;
-		this->activation = activation;
- 		this->activationPrime = activationPrime;
+		this->pairNum = pairNum;
+		// this->activation = activation;
+ 		// this->activationPrime = activationPrime;
 	}
 
 	//returns the activated input
@@ -211,12 +210,8 @@ public:
 		grid_size.y = (input.cols() + block_size.y - 1) / block_size.y;
 		float * d_input;
 		cudaMalloc((void **) &d_input, input.rows() * input.cols() * sizeof(float));
-		cudaMemcpy(d_input, input.data(), input.rows() * input.cols() * sizeof(float), cudaMemcpyHostToDevice);
-		switch(this->yeet){
-			case 1:			
-				tanh2_gpu<<<grid_size, block_size>>>(d_input, input.rows(), input.cols());
-				break;
-		}
+		cudaMemcpy(d_input, input.data(), input.rows() * input.cols() * sizeof(float), cudaMemcpyHostToDevice);	
+		ActivationForwardPass<<<grid_size, block_size>>>(pairNum, d_input, input.rows(), input.cols());
 		cudaDeviceSynchronize();
 		cudaMemcpy(this->output.data(), d_input, input.rows() * input.cols() * sizeof(float), cudaMemcpyDeviceToHost);
 		cudaFree(d_input);
@@ -244,11 +239,8 @@ public:
 		cudaMemcpy(d_input, input.data(), outputError.rows() * outputError.cols() * sizeof(float), cudaMemcpyHostToDevice);
 		cudaMemcpy(d_outputError, outputError.data(), outputError.rows() * outputError.cols() * sizeof(float), cudaMemcpyHostToDevice);
 
-		switch(this->yeet){
-			case 1:
-				tanh2Prime_gpu<<<grid_size, block_size>>>(d_input, input.rows(), input.cols());
-				break;
-		}
+		ActivationBackPass<<<grid_size, block_size>>>(pairNum, d_input, input.rows(), input.cols());
+		
 		cudaDeviceSynchronize();
 
 		element_wise_mul<<<grid_size, block_size>>>(d_outputError, d_input, input.rows(), input.cols());
@@ -261,7 +253,7 @@ public:
 private:
 	std::function<float(float)> activation;
 	std::function<float(float)> activationPrime;
-	int yeet;
+	int pairNum;
 };
 
 // class ActivationLayer : public Layer
