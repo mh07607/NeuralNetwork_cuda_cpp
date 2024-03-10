@@ -9,6 +9,13 @@
 #include <numeric> //std::iota
 #include "kernel_code.h"
 
+inline cudaError_t checkCudaErr(cudaError_t err, const char* msg) {
+  if (err != cudaSuccess) {
+    fprintf(stderr, "CUDA Runtime error at %s: %s\n", msg, cudaGetErrorString(err));
+  }
+  return err;
+}
+
 void printMatrixSize(const std::string msg, const Eigen::MatrixXf& m)
 {
 	std::cout << msg.c_str() << "[" << m.rows() << "," << m.cols() << "]" << std::endl;
@@ -104,33 +111,47 @@ public:
 		// For retrieving the input error on host
 		float * h_inputError = (float *) malloc (inputError_size);
 
-		cudaMalloc((void **) &d_outputError, outputError_size);
-		cudaMalloc((void **) &d_input, input_size);
-		cudaMalloc((void **) &d_weights, weights_size);
-		cudaMalloc((void **) &d_inputError, inputError_size);
-		cudaMalloc((void **) &d_weightsError, weightsError_size);
-		cudaMalloc((void **) &d_bias, bias_size);
-		cudaMalloc((void **) &d_input_T, input_size);
-		cudaMalloc((void **) &d_weights_T, weights_size);
+		checkCudaErr(cudaMalloc((void **) &d_outputError, outputError_size), "malloc d_outputError\n");
+		checkCudaErr(cudaMalloc((void **) &d_input, input_size), "malloc d_input\n");
+		checkCudaErr(cudaMalloc((void **) &d_weights, weights_size), "malloc d_weights\n");
+		checkCudaErr(cudaMalloc((void **) &d_inputError, inputError_size), "malloc d_inputError\n");
+		checkCudaErr(cudaMalloc((void **) &d_weightsError, weightsError_size), "malloc d_weightsError\n");
+		checkCudaErr(cudaMalloc((void **) &d_bias, bias_size), "malloc d_bias\n");
+		checkCudaErr(cudaMalloc((void **) &d_input_T, input_size), "malloc d_inputs_T\n");
+		checkCudaErr(cudaMalloc((void **) &d_weights_T, weights_size), "malloc d_weights_T\n");
 
-		cudaMemcpy(d_input, input.data(), input_size, cudaMemcpyHostToDevice);
-		cudaMemcpy(d_weights, weights.data(), weights_size, cudaMemcpyHostToDevice);
-		cudaMemcpy(d_bias, bias.data(), bias_size, cudaMemcpyHostToDevice);
-		cudaMemcpy(d_outputError, outputError.data(), outputError_size, cudaMemcpyHostToDevice);
+		checkCudaErr(cudaMemcpy(d_input, input.data(), input_size, cudaMemcpyHostToDevice), "memcpy d_input\n");
+		checkCudaErr(cudaMemcpy(d_weights, weights.data(), weights_size, cudaMemcpyHostToDevice), "memcpy d_weights\n");
+		checkCudaErr(cudaMemcpy(d_bias, bias.data(), bias_size, cudaMemcpyHostToDevice), "memcpy bias\n");
+		checkCudaErr(cudaMemcpy(d_outputError, outputError.data(), outputError_size, cudaMemcpyHostToDevice), "memcpy outputError\n");
 
 		
 		DenseBackwardPass<<<1, 1>>>
-		(
+		(d_outputError,
+	     d_input,
+		 d_weights,
+		 d_bias,
+		 d_inputError,
+		 d_weightsError,
+		 d_weights_T,
+		 d_input_T,
+		 learningRate,
+		 outputError.rows(),
+		 outputError.cols(),
+		 input.rows(),
+		 input.cols(),
+		 weights.rows(),
+		 weights.cols()
 		 );
 
 		
 		cudaDeviceSynchronize();
 		
-		cudaError_t cudaError = cudaGetLastError();
-		if(cudaError != cudaSuccess) {
-			printf("CUDA error after kernel launch: %s\n", cudaGetErrorString(cudaError));
-			//return 1; // return an error code
-		}
+		// cudaError_t cudaError = cudaGetLastError();
+		// if(cudaError != cudaSuccess) {
+		// 	printf("CUDA error after kernel launch: %s\n", cudaGetErrorString(cudaError));
+		// 	//return 1; // return an error code
+		// }
 
 		cudaMemcpy(weights.data(), d_weights, weights_size, cudaMemcpyDeviceToHost);
 		cudaMemcpy(bias.data(), d_bias, weights_size, cudaMemcpyDeviceToHost);
