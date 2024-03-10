@@ -1,6 +1,41 @@
 #include "kernel_code.h"
-#include "ActivationAndLossFunctions.h"
+// #include "ActivationAndLossFunctions.h"
 // #include <math_functions.h>
+
+//activation functions
+__device__ float sigmoid(float x)
+{
+	return 1.0f / 1.0f + exp(-x);
+}
+
+__device__ float sigmoid_prime(float x)
+{
+	float s = sigmoid(x);
+	return s * (1 - s);
+}
+__device__ float tanh2(float x)
+{
+	return tanh(x);
+}
+
+__device__ float tanh_prime(float x)
+{
+	return 1.0f - powf(tanh(x), 2.0f);
+}
+
+__device__ float relu(float x)
+{
+	return std::max(x, 0.0f);
+}
+__device__ float relu_prime(float x)
+{
+	return (float)((int)(x >= 0));
+}
+
+__device__ float one_minus(float x)
+{
+	return 1 - x;
+}
 
 
 __global__ void DenseForwardPass(float* d_M, float* d_N, float* d_P, float * d_B, int M, int N, int P) {
