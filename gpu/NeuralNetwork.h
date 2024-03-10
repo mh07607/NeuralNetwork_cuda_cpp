@@ -227,7 +227,7 @@ public:
 	//learningRate is not used because there is no "learnable" parameters.
 	Eigen::MatrixXf backwardPropagation(Eigen::MatrixXf& outputError, float learningRate)
 	{ 
-		std::cout << "Actual Output: "<< (input.unaryExpr(activationPrime).array() * outputError.array()).matrix() << std::endl;
+		// std::cout << "Actual Output: "<< (input.unaryExpr(activationPrime).array() * outputError.array()).matrix() << std::endl;
 		dim3 block_size(32, 32, 1);
 		dim3 grid_size;
 		grid_size.x = (outputError.rows() + block_size.x - 1) / block_size.x;
@@ -235,7 +235,7 @@ public:
 
 		float * d_outputError;
 		float * d_input;
-		float * output = malloc(outputError.rows() * outputError.cols() * sizeof(float));
+		float * output = (float *) malloc(outputError.rows() * outputError.cols() * sizeof(float));
 		cudaMalloc((void **) &d_outputError, outputError.rows() * outputError.cols() * sizeof(float));
 		cudaMalloc((void **) &d_input, input.rows() * input.cols() * sizeof(float));
 		cudaMemcpy(d_input, input.data(), outputError.rows() * outputError.cols() * sizeof(float), cudaMemcpyHostToDevice);
@@ -251,7 +251,7 @@ public:
 		element_wise_mul<<<grid_size, block_size>>>(d_outputError, d_input, input.rows(), input.cols());
 		cudaMemcpy(output, d_outputError, outputError.rows() * outputError.cols() * sizeof(float), cudaMemcpyDeviceToHost);
 		Eigen::MatrixXf output_matrix = Eigen::MatrixXf::Map(output, outputError.rows(), outputError.cols());
-		std::cout << "My output: " << output_matrix << std::endl;
+		// std::cout << "My output: " << output_matrix << std::endl;
 		return output_matrix;
 	}
 
