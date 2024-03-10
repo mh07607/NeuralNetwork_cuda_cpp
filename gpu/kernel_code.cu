@@ -1,6 +1,4 @@
 #include "kernel_code.h"
-// #include "ActivationAndLossFunctions.h"
-// #include <math_functions.h>
 
 //activation functions
 __device__ float sigmoid(float x)

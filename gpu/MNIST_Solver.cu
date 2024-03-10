@@ -140,12 +140,12 @@ int main(int argc, char * argv[])
 
     Network nn;
     nn.add(new DenseLayer(28*28, 100));
-    // pairNum is an added parameter
-    nn.add(new ActivationLayer(tanh2, tanh_prime, 1));
+    // pairNum is a new parameter. Here 1 means tanh2 and tanh prime
+    nn.add(new ActivationLayer(1));
     nn.add(new DenseLayer(100, 50));
-    nn.add(new ActivationLayer(tanh2, tanh_prime, 1));
+    nn.add(new ActivationLayer(1));
     nn.add(new DenseLayer(50, 10));
-    nn.add(new ActivationLayer(tanh2, tanh_prime, 1));
+    nn.add(new ActivationLayer(1));
 
     nn.use(mse, mse_prime);
 
