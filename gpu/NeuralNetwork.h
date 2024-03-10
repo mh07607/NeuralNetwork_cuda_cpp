@@ -65,11 +65,11 @@ public:
 		DenseForwardPass<<<grid_size, block_size>>>
 		(d_input, d_weights, output_arr, d_bias, input.rows(), weights.cols(), weights.rows());
 		cudaDeviceSynchronize();
-		
-		if(cudaError != cudaSuccess) {
-			printf("CUDA error after kernel launch: %s\n", cudaGetErrorString(cudaError));
-			//return 1; // return an error code
-		}
+
+		// if(cudaError != cudaSuccess) {
+		// 	printf("CUDA error after kernel launch: %s\n", cudaGetErrorString(cudaError));
+		// 	//return 1; // return an error code
+		// }
 
 		cudaMemcpy(this->output.data(), output_arr, output_size, cudaMemcpyDeviceToHost);
 
