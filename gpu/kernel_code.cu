@@ -58,7 +58,7 @@ __global__ void DenseBackwardPass(
     float * d_weightsError,
     float * d_weights_T,
     float * d_input_T,
-    int lr,
+    float lr,
     int o_r,
     int o_c,
     int i_r,
@@ -66,47 +66,46 @@ __global__ void DenseBackwardPass(
     int w_r,
     int w_c
 ){
+    dim3 block_size(32, 32, 1);
+    dim3 grid_size;
 
-    // dim3 block_size(32, 32, 1);
-    // dim3 grid_size;
+    grid_size.x = (w_r + block_size.x - 1) / block_size.x;
+    grid_size.y = (w_c + block_size.y - 1) / block_size.y;
+    transpose<<<grid_size, block_size>>>(d_weights_T, d_weights, w_r, w_c);
 
-    // grid_size.x = (w_r + block_size.x - 1) / block_size.x;
-    // grid_size.y = (w_c + block_size.y - 1) / block_size.y;
-    // transpose<<<grid_size, block_size>>>(d_weights_T, d_weights, w_r, w_c);
+    grid_size.x = (i_r + block_size.x - 1) / block_size.x;
+    grid_size.y = (i_c + block_size.y - 1) / block_size.y;
+    transpose<<<grid_size, block_size>>>(d_input_T, d_input, i_r, i_c);
 
-    // grid_size.x = (i_r + block_size.x - 1) / block_size.x;
-    // grid_size.y = (i_c + block_size.y - 1) / block_size.y;
-    // transpose<<<grid_size, block_size>>>(d_input_T, d_input, i_r, i_c);
+    __syncthreads();
 
-    // __syncthreads();
+    grid_size.x = (o_r + block_size.x - 1) / block_size.x;
+    grid_size.y = (w_r + block_size.y - 1) / block_size.y;
+    MatrixMulKernel<<<grid_size, block_size>>>(d_outputError, d_weights_T, d_inputError, o_r, w_r, w_c);
 
-    // grid_size.x = (o_r + block_size.x - 1) / block_size.x;
-    // grid_size.y = (w_r + block_size.y - 1) / block_size.y;
-    // MatrixMulKernel<<<grid_size, block_size>>>(d_outputError, d_weights_T, d_inputError, o_r, w_r, w_c);
+    grid_size.x = (i_c + block_size.x - 1) / block_size.x;
+    grid_size.y = (o_c + block_size.y - 1) / block_size.y;
+    MatrixMulKernel<<<grid_size, block_size>>>(d_weightsError, d_input_T, d_outputError, i_c, o_c, o_r);
 
-    // grid_size.x = (i_c + block_size.x - 1) / block_size.x;
-    // grid_size.y = (o_c + block_size.y - 1) / block_size.y;
-    // MatrixMulKernel<<<grid_size, block_size>>>(d_weightsError, d_input_T, d_outputError, i_c, o_c, o_r);
+    __syncthreads();
 
-    // __syncthreads();
+    grid_size.x = (w_r + block_size.x - 1) / block_size.x;
+    grid_size.y = (w_c + block_size.y - 1) / block_size.y;
+    MatrixSubtractionKernel<<<grid_size, block_size>>>(d_weights, d_weightsError, lr, w_r, w_c);
 
-    // grid_size.x = (w_r + block_size.x - 1) / block_size.x;
-    // grid_size.y = (w_c + block_size.y - 1) / block_size.y;
-    // MatrixSubtractionKernel<<<grid_size, block_size>>>(d_weights, d_weightsError, lr, w_r, w_c);
+    grid_size.x = (o_r + block_size.x - 1) / block_size.x;
+    grid_size.y = (o_c + block_size.y - 1) / block_size.y;
+    MatrixSubtractionKernel<<<grid_size, block_size>>>(d_bias, d_outputError, lr, o_r, o_c);
 
-    // grid_size.x = (o_r + block_size.x - 1) / block_size.x;
-    // grid_size.y = (o_c + block_size.y - 1) / block_size.y;
-    // MatrixSubtractionKernel<<<grid_size, block_size>>>(d_bias, d_outputError, lr, o_r, o_c);
+	Eigen::MatrixXf inputError = outputError * weights.transpose(); //calculates dE/dx 
+    Eigen::MatrixXf weightsError = input.transpose() * outputError; //calculates dE/dW
 
-	// Eigen::MatrixXf inputError = outputError * weights.transpose(); //calculates dE/dx 
-    // Eigen::MatrixXf weightsError = input.transpose() * outputError; //calculates dE/dW
+    //update parameters
+    weights -= weightsError * learningRate;
+    bias -= outputError * learningRate; 
 
-    // //update parameters
-    // weights -= weightsError * learningRate;
-    // bias -= outputError * learningRate; 
-
-    // free(d_weights_T);
-    // free(d_input_T);
+    free(d_weights_T);
+    free(d_input_T);
 }
 
 
