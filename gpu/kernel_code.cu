@@ -24,7 +24,7 @@ __global__ void transpose(float * d_N, float * d_M, int M, int N){
 	// Calculate the column index of d_P and d_N
 	int Col = blockIdx.x*blockDim.x+threadIdx.x;
 	if ((Row < M) && (Col < N)) {
-        d_N[Col * M + Row] = d_M[Row * N + Col]
+        d_N[Col * M + Row] = d_M[Row * N + Col];
     }
 }
 
@@ -66,7 +66,7 @@ __global__ void DenseBackwardPass(
     int i_r,
     int i_c,
     int w_r,
-    int w_c,
+    int w_c
 ){
     float * d_weights_T = (float *) malloc (w_r * w_c * sizeof(float));
     float * d_input_T = (float *) malloc (i_r * i_c * sizeof(float));
@@ -96,11 +96,11 @@ __global__ void DenseBackwardPass(
 
     grid_size.x = (w_r + block_size.x - 1) / block_size.x;
     grid_size.y = (w_c + block_size.y - 1) / block_size.y;
-    MatrixSubtractionKernel(d_weights, d_weightsError, lr, w_r, w_c);
+    MatrixSubtractionKernel<<<grid_size, block_size>>>(d_weights, d_weightsError, lr, w_r, w_c);
 
     grid_size.x = (o_r + block_size.x - 1) / block_size.x;
     grid_size.y = (o_c + block_size.y - 1) / block_size.y;
-    MatrixSubtractionKernel(d_bias, d_outputError, lr, o_r, o_c);
+    MatrixSubtractionKernel<<<grid_size, block_size>>>(d_bias, d_outputError, lr, o_r, o_c);
 
 	// Eigen::MatrixXf inputError = outputError * weights.transpose(); //calculates dE/dx 
     // Eigen::MatrixXf weightsError = input.transpose() * outputError; //calculates dE/dW

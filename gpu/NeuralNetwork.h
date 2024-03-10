@@ -90,7 +90,7 @@ public:
 		int weights_size = weights.rows() * weights.cols() * sizeof(float);
 		int bias_size = bias.rows() * bias.cols() * sizeof(float);
 		int inputError_size = outputError.rows() * weights.rows() * sizeof(float);
-		int weightsError_size = input.cols() * outputError.cols( * sizeof(float));
+		int weightsError_size = input.cols() * outputError.cols() * sizeof(float);
 
 		// For retrieving the input error on host
 		float * h_inputError = (float *) malloc (inputError_size);
@@ -109,7 +109,7 @@ public:
 		(d_outputError,
 	     d_input,
 		 d_weights,
-		 d_bias
+		 d_bias,
 		 d_inputError,
 		 d_weightsError,
 		 learing_rate,
@@ -118,9 +118,9 @@ public:
 		 d_input.rows(),
 		 d_input.cols(),
 		 d_weights.rows(),
-		 d_weights.cols(),
+		 d_weights.cols()
 		 );
-		
+		cudaDeviceSynchronize();
 
 		cudaMemcpy(weights.data(), d_weights, weights_size, cudaMemcpyDeviceToHost);
 		cudaMemcpy(bias.data(), d_bias, weights_size, cudaMemcpyDeviceToHost);
@@ -141,7 +141,7 @@ public:
 		cudaFree(d_bias);
 		cudaFree(d_outputError);
 		cudaFree(d_inputError);
-		
+
 		return inputError;
 	}
 
