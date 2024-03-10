@@ -45,7 +45,6 @@ public:
 		float * output_arr;
 		int output_size = input.rows() * weights.cols() * sizeof(float);
 		// std::cout << "Output size: " << input.rows() << weights.cols() << weights.rows() << output_size << std::endl;
-		float * h_output_arr = this->output.data();//(float *)malloc(output_size);
 		float * d_input;
 		float * d_weights;
 		float * d_bias;
@@ -66,9 +65,7 @@ public:
 		DenseForwardPass<<<grid_size, block_size>>>
 		(d_input, d_weights, output_arr, d_bias, input.rows(), weights.cols(), weights.rows());
 		cudaDeviceSynchronize();
-		cudaMemcpy(h_output_arr, output_arr, output_size, cudaMemcpyDeviceToHost);
-		// this->output = Eigen::MatrixXf::Map(h_output_arr, input.rows(), weights.cols());
-		// std::cout << "My kernel output: " << this->output << std::endl;
+		cudaMemcpy(this->output.data(), output_arr, output_size, cudaMemcpyDeviceToHost);
 
 		cudaFree(output_arr);
 		cudaFree(d_input);
