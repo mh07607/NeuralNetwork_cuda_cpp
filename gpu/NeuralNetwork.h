@@ -99,6 +99,7 @@ public:
 		cudaMalloc((void **) &d_input, input_size);
 		cudaMalloc((void **) &d_weights, weights_size);
 		cudaMalloc((void **) &d_inputError, inputError_size);
+		cudaMalloc((void **) &d_weightsError, weightsError_size);
 		cudaMalloc((void **) &d_bias, bias_size);
 
 		cudaMemcpy(d_input, input.data(), input_size, cudaMemcpyHostToDevice);
@@ -112,7 +113,7 @@ public:
 		 d_bias,
 		 d_inputError,
 		 d_weightsError,
-		 learning_rate,
+		 learningRate,
 		 outputError.rows(),
 		 outputError.cols(),
 		 input.rows(),
@@ -137,7 +138,7 @@ public:
 
 		// free(h_inputError);
 		cudaFree(d_input);
-		cudaFree(d_weight);
+		cudaFree(d_weights);
 		cudaFree(d_bias);
 		cudaFree(d_outputError);
 		cudaFree(d_inputError);
