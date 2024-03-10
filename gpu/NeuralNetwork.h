@@ -84,92 +84,92 @@ public:
 	//computes dE/dW, dE/dB for a given outputError = dE/dY. Returns input_error = dE/dX.
 	Eigen::MatrixXf backwardPropagation(Eigen::MatrixXf& outputError, float learningRate)
 	{
-		// float * d_outputError;
-		// float * d_input;
-		// float * d_bias;
-		// float * d_weights;
-		// float * d_inputError;
-		// float * d_weightsError;
-		// float * d_weights_T;
-		// float * d_input_T;
+		float * d_outputError;
+		float * d_input;
+		float * d_bias;
+		float * d_weights;
+		float * d_inputError;
+		float * d_weightsError;
+		float * d_weights_T;
+		float * d_input_T;
 
-		// int outputError_size = outputError.rows() * outputError.cols() * sizeof(float);
-		// int input_size = input.rows() * input.cols() * sizeof(float);
-		// int weights_size = weights.rows() * weights.cols() * sizeof(float);
-		// int bias_size = bias.rows() * bias.cols() * sizeof(float);
-		// int inputError_size = outputError.rows() * weights.rows() * sizeof(float);
-		// int weightsError_size = input.cols() * outputError.cols() * sizeof(float);
+		int outputError_size = outputError.rows() * outputError.cols() * sizeof(float);
+		int input_size = input.rows() * input.cols() * sizeof(float);
+		int weights_size = weights.rows() * weights.cols() * sizeof(float);
+		int bias_size = bias.rows() * bias.cols() * sizeof(float);
+		int inputError_size = outputError.rows() * weights.rows() * sizeof(float);
+		int weightsError_size = input.cols() * outputError.cols() * sizeof(float);
 
-		// // For retrieving the input error on host
-		// float * h_inputError = (float *) malloc (inputError_size);
+		// For retrieving the input error on host
+		float * h_inputError = (float *) malloc (inputError_size);
 
 
-		// cudaMalloc((void **) &d_outputError, outputError_size);
-		// cudaMalloc((void **) &d_input, input_size);
-		// cudaMalloc((void **) &d_weights, weights_size);
-		// cudaMalloc((void **) &d_inputError, inputError_size);
-		// cudaMalloc((void **) &d_weightsError, weightsError_size);
-		// cudaMalloc((void **) &d_bias, bias_size);
-		// cudaMalloc((void **) &d_input_T, input_size);
-		// cudaMalloc((void **) &d_weights_T, weights_size);
+		cudaMalloc((void **) &d_outputError, outputError_size);
+		cudaMalloc((void **) &d_input, input_size);
+		cudaMalloc((void **) &d_weights, weights_size);
+		cudaMalloc((void **) &d_inputError, inputError_size);
+		cudaMalloc((void **) &d_weightsError, weightsError_size);
+		cudaMalloc((void **) &d_bias, bias_size);
+		cudaMalloc((void **) &d_input_T, input_size);
+		cudaMalloc((void **) &d_weights_T, weights_size);
 
-		// cudaMemcpy(d_input, input.data(), input_size, cudaMemcpyHostToDevice);
-		// cudaMemcpy(d_weights, weights.data(), weights_size, cudaMemcpyHostToDevice);
-		// cudaMemcpy(d_outputError, outputError.data(), outputError_size, cudaMemcpyHostToDevice);
-
-		
-		// DenseBackwardPass<<<1, 1>>>
-		// (d_outputError,
-	    //  d_input,
-		//  d_weights,
-		//  d_bias,
-		//  d_inputError,
-		//  d_weightsError,
-		//  d_weights_T,
-		//  d_input_T,
-		//  learningRate,
-		//  outputError.rows(),
-		//  outputError.cols(),
-		//  input.rows(),
-		//  input.cols(),
-		//  weights.rows(),
-		//  weights.cols()
-		//  );
+		cudaMemcpy(d_input, input.data(), input_size, cudaMemcpyHostToDevice);
+		cudaMemcpy(d_weights, weights.data(), weights_size, cudaMemcpyHostToDevice);
+		cudaMemcpy(d_outputError, outputError.data(), outputError_size, cudaMemcpyHostToDevice);
 
 		
-		// cudaDeviceSynchronize();
+		DenseBackwardPass<<<1, 1>>>
+		(d_outputError,
+	     d_input,
+		 d_weights,
+		 d_bias,
+		 d_inputError,
+		 d_weightsError,
+		 d_weights_T,
+		 d_input_T,
+		 learningRate,
+		 outputError.rows(),
+		 outputError.cols(),
+		 input.rows(),
+		 input.cols(),
+		 weights.rows(),
+		 weights.cols()
+		 );
+
 		
-		// cudaError_t cudaError = cudaGetLastError();
-		// if(cudaError != cudaSuccess) {
-		// 	printf("CUDA error after kernel launch: %s\n", cudaGetErrorString(cudaError));
-		// 	//return 1; // return an error code
-		// }
+		cudaDeviceSynchronize();
+		
+		cudaError_t cudaError = cudaGetLastError();
+		if(cudaError != cudaSuccess) {
+			printf("CUDA error after kernel launch: %s\n", cudaGetErrorString(cudaError));
+			//return 1; // return an error code
+		}
 
-		// cudaMemcpy(weights.data(), d_weights, weights_size, cudaMemcpyDeviceToHost);
-		// cudaMemcpy(bias.data(), d_bias, weights_size, cudaMemcpyDeviceToHost);
-		// cudaMemcpy(h_inputError, d_inputError, inputError_size, cudaMemcpyDeviceToHost);
+		cudaMemcpy(weights.data(), d_weights, weights_size, cudaMemcpyDeviceToHost);
+		cudaMemcpy(bias.data(), d_bias, weights_size, cudaMemcpyDeviceToHost);
+		cudaMemcpy(h_inputError, d_inputError, inputError_size, cudaMemcpyDeviceToHost);
 
-		// Eigen::MatrixXf inputError = Eigen::MatrixXf::Map(h_inputError, outputError.rows(), weights.rows());
+		Eigen::MatrixXf inputError = Eigen::MatrixXf::Map(h_inputError, outputError.rows(), weights.rows());
 
 			
 
-		// free(h_inputError);
-		// cudaFree(d_input);
-		// cudaFree(d_weights);
-		// cudaFree(d_bias);
-		// cudaFree(d_outputError);
-		// cudaFree(d_inputError);
-
-		// return inputError;
-
-		Eigen::MatrixXf inputError = outputError * weights.transpose(); //calculates dE/dx 
-		Eigen::MatrixXf weightsError = input.transpose() * outputError; //calculates dE/dW
-
-		//update parameters
-		weights -= weightsError * learningRate;
-		bias -= outputError * learningRate; 
+		free(h_inputError);
+		cudaFree(d_input);
+		cudaFree(d_weights);
+		cudaFree(d_bias);
+		cudaFree(d_outputError);
+		cudaFree(d_inputError);
 
 		return inputError;
+
+		// Eigen::MatrixXf inputError = outputError * weights.transpose(); //calculates dE/dx 
+		// Eigen::MatrixXf weightsError = input.transpose() * outputError; //calculates dE/dW
+
+		// //update parameters
+		// weights -= weightsError * learningRate;
+		// bias -= outputError * learningRate; 
+
+		// return inputError;
 	}
 
 private:
