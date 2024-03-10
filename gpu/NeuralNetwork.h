@@ -201,7 +201,7 @@ public:
 	{
 		this->input = input;
 		this->output = input.unaryExpr(activation)
-		cout << "Real output: " << this->output << endl;
+		std::cout << "Real output: " << this->output << std::endl;
 		dim3 block_size(32, 32, 1);
 		dim3 grid_size;
 		grid_size.x = (input.rows() + block_size.x - 1) / block_size.x;
@@ -219,7 +219,7 @@ public:
 		cudaFree(d_input);
 		// this->input = input;
 		// this->output = input.unaryExpr(activation);
-		cout << "My output: " << this->output << endl;
+		std::cout << "My output: " << this->output << std::endl;
 		return this->output;
 	}
 
