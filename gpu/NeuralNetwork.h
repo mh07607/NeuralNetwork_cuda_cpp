@@ -316,7 +316,7 @@ public:
 	}
 
 	//train the network
-	virtual void fit(Eigen::MatrixXf x_train, Eigen::MatrixXf y_train, int epochs, float learningRate, std::string fileName)
+	virtual void fit(Eigen::MatrixXf x_train, Eigen::MatrixXf y_train, int epochs, float learningRate, const char * fileName)
 	{ 
 		FILE *file = fopen(fileName, "w");
 
