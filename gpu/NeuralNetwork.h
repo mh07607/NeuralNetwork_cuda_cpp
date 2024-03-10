@@ -188,7 +188,8 @@ private:
 class ActivationLayer : public Layer
 {
 public:
-	ActivationLayer(int activation)
+	ActivationLayer(std::function<float(float)> activation,
+ 		std::function<float(float)> activationPrime)
 	{
 		this->yeet = 1;
 		this->activation = activation;
