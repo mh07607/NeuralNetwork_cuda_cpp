@@ -104,11 +104,6 @@ __global__ void DenseBackwardPass(
     grid_size.x = (o_r + block_size.x - 1) / block_size.x;
     grid_size.y = (o_c + block_size.y - 1) / block_size.y;
     MatrixSubtractionKernel<<<grid_size, block_size>>>(d_bias, d_outputError, lr, o_r, o_c);
-
-	
-
-    free(d_weights_T);
-    free(d_input_T);
 }
 
 
