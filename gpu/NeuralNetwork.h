@@ -38,7 +38,7 @@ protected:
 class GPUDenseLayer : public GPULayer
 {
 public:
-	GPUDenseLayer(int inputSize, int  outputSize) : Layer()
+	GPUDenseLayer(int inputSize, int  outputSize) : GPULayer()
 	{
 		//Eigen::MatrixXf::Random returns values from [-1,1] we should scale it to [-0.5,0.5]
 		weights = Eigen::MatrixXf::Random(inputSize, outputSize).array() * 0.5f;
@@ -188,14 +188,15 @@ private:
 class GPUActivationLayer : public GPULayer
 {
 public:
-	ActivationLayer(int output_size, int pairNum = 1)
+	GPUActivationLayer(int input_size, int pairNum = 1)
 	{   
+		// input_size takes size of input so that we can initialize output array
 		// pairNum
 		// 1 represents tanh2 and tanh prime
 		// 2 represents sigmoid and sigmoid prime
 		// 3 represents relu and relu prime
 		this->pairNum = pairNum;
-		this->output = Eigen::MatrixXf::Random(1, output_size).array();
+		this->output = Eigen::MatrixXf::Random(1, input_size).array();
 	}
 
 	//returns the activated input
